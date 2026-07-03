@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2, CircleDashed, Ship, MapPin } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useLocale, useT, type DictKey } from "@/lib/i18n";
 import type { MilestoneKey } from "@/lib/carrier/types";
 
@@ -29,6 +30,7 @@ export default function TrackingPage({
   const { code } = use(params);
   const t = useT();
   const { locale } = useLocale();
+  const reduce = useReducedMotion();
   const [data, setData] = useState<TrackData | null>(null);
   const [notFound, setNotFound] = useState(false);
 
@@ -78,6 +80,7 @@ export default function TrackingPage({
   const reachedIndex = data.milestones.reduce((acc, m, i) => {
     return data.events.some((e) => e.statusKey === m) ? i : acc;
   }, 0);
+  const delivered = reachedIndex === data.milestones.length - 1;
 
   const fmt = (ts: number) =>
     new Date(ts).toLocaleString(locale === "fr" ? "fr-FR" : "en-GB", {
@@ -108,7 +111,17 @@ export default function TrackingPage({
         {data.departure && (
           <div className="rounded-xl bg-white border border-border px-4 py-3 text-sm">
             <p className="flex items-center gap-1.5 font-semibold">
-              <Ship className="w-4 h-4 text-primary" aria-hidden />
+              {/* The living ship — the parcel is a real object in motion */}
+              <motion.span
+                aria-hidden
+                animate={
+                  reduce || delivered ? {} : { y: [0, -2.5, 0], rotate: [0, -2, 0] }
+                }
+                transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+                className="inline-flex"
+              >
+                <Ship className="w-4 h-4 text-primary" />
+              </motion.span>
               {data.departure.label}
             </p>
             <p className="text-muted mt-0.5">
@@ -122,23 +135,60 @@ export default function TrackingPage({
       <ol className="mt-8 space-y-0">
         {data.milestones.map((m, i) => {
           const reached = i <= reachedIndex;
+          const isCurrent = i === reachedIndex && !delivered;
           const isLast = i === data.milestones.length - 1;
           const eventsFor = data.events.filter((e) => e.statusKey === m);
           return (
             <li key={m} className="relative pl-10 pb-6">
               {!isLast && (
                 <span
-                  className={`absolute left-[13px] top-7 bottom-0 w-0.5 ${
-                    i < reachedIndex ? "bg-primary" : "bg-border"
-                  }`}
+                  className="absolute left-[13px] top-7 bottom-0 w-0.5 bg-border"
                   aria-hidden
-                />
+                >
+                  {/* Progress ink draws down the connector as milestones land */}
+                  <motion.span
+                    className="absolute inset-0 bg-primary"
+                    style={{ transformOrigin: "top" }}
+                    initial={{ scaleY: 0 }}
+                    animate={{ scaleY: i < reachedIndex ? 1 : 0 }}
+                    transition={{
+                      duration: reduce ? 0.2 : 0.7,
+                      ease: [0.16, 1, 0.3, 1],
+                      delay: reduce ? 0 : 0.15 + i * 0.12,
+                    }}
+                  />
+                </span>
               )}
               {reached ? (
-                <CheckCircle2
-                  className="absolute left-0 top-0.5 w-7 h-7 text-primary fill-white"
-                  aria-hidden
-                />
+                <motion.span
+                  className="absolute left-0 top-0.5 inline-flex"
+                  initial={{ scale: reduce ? 1 : 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 260,
+                    damping: 18,
+                    delay: reduce ? 0 : 0.2 + i * 0.12,
+                  }}
+                >
+                  <CheckCircle2
+                    className="w-7 h-7 text-primary fill-white"
+                    aria-hidden
+                  />
+                  {isCurrent && !reduce && (
+                    <motion.span
+                      aria-hidden
+                      className="absolute inset-0 rounded-full border-2 border-gold"
+                      animate={{ scale: [1, 1.55], opacity: [0.6, 0] }}
+                      transition={{
+                        duration: 1.6,
+                        repeat: Infinity,
+                        ease: "easeOut",
+                        repeatDelay: 0.6,
+                      }}
+                    />
+                  )}
+                </motion.span>
               ) : (
                 <CircleDashed
                   className="absolute left-0 top-0.5 w-7 h-7 text-border"
@@ -153,13 +203,16 @@ export default function TrackingPage({
                 {t(`ms_${m}` as DictKey)}
               </p>
               {eventsFor.map((e) => (
-                <div
+                <motion.div
                   key={e.occurredAt}
+                  initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                   className="mt-1.5 rounded-xl bg-white border border-border px-4 py-2.5 text-sm"
                 >
                   <p>{locale === "fr" ? e.messageFr : e.messageEn}</p>
                   <p className="mt-1 text-xs text-muted">{fmt(e.occurredAt)}</p>
-                </div>
+                </motion.div>
               ))}
             </li>
           );

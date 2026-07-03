@@ -53,6 +53,24 @@ const dict = {
     en: "Couldn't estimate right now. Please try again.",
   },
 
+  // ── Journey scene ──
+  journey_title: {
+    fr: "Vos colis voyagent ensemble",
+    en: "Your parcels travel together",
+  },
+  journey_sub: {
+    fr: "C'est ça, le groupage : chacun envoie ce qu'il veut, tout part dans un seul conteneur — et chacun ne paie que sa part.",
+    en: "That's groupage: everyone sends what they want, everything leaves in one container — and everyone pays only their share.",
+  },
+  journey_caption: {
+    fr: "4–8 semaines · Un seul conteneur · Toute la diaspora",
+    en: "4–8 weeks · One container · The whole diaspora",
+  },
+  journey_aria: {
+    fr: "Animation : des colis se regroupent dans un conteneur qui voyage du Havre à Douala par bateau",
+    en: "Animation: parcels consolidate into a container that travels from Le Havre to Douala by ship",
+  },
+
   // ── Goods we transport ──
   goods_title: { fr: "Nous transportons", en: "We transport" },
   g_cars: { fr: "Voitures", en: "Cars" },

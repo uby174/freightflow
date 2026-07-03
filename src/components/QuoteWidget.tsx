@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Scale, Box, Ship, Sparkles } from "lucide-react";
 import { useLocale, useT } from "@/lib/i18n";
+import { PriceTicker } from "@/components/motion/PriceTicker";
 
 interface QuoteResponse {
   estimate: {
@@ -136,9 +137,10 @@ export function QuoteWidget() {
           </p>
           <div className="border-t border-border pt-2 flex items-center justify-between">
             <span className="font-bold">{t("quote_total_from")}</span>
-            <span className="text-xl font-black text-primary">
-              {euro(quote.price.totalCents)}
-            </span>
+            <PriceTicker
+              cents={quote.price.totalCents}
+              className="text-xl font-black text-primary"
+            />
           </div>
           <button
             onClick={book}

@@ -9,8 +9,11 @@ import {
   CheckCircle2,
   Copy,
   PartyPopper,
+  Ship,
 } from "lucide-react";
+import { motion } from "motion/react";
 import { useLocale, useT } from "@/lib/i18n";
+import { PriceTicker, CodeReveal } from "@/components/motion/PriceTicker";
 import type { DepartureDto } from "@/components/useDepartures";
 
 interface Draft {
@@ -243,15 +246,26 @@ export default function BookPage() {
   if (confirmedCode) {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <PartyPopper className="w-14 h-14 text-accent mx-auto" aria-hidden />
+        <motion.div
+          initial={{ scale: 0, rotate: -12 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+        >
+          <PartyPopper className="w-14 h-14 text-accent mx-auto" aria-hidden />
+        </motion.div>
         <h1 className="mt-4 text-3xl font-black text-primary-dark">
           {t("wiz_done_title")}
         </h1>
         <p className="mt-2 text-muted">{t("wiz_done_sub")}</p>
         <div className="mt-5 flex items-center justify-center gap-2">
-          <code className="text-2xl font-black tracking-wider bg-white border-2 border-primary rounded-xl px-5 py-3">
-            {confirmedCode}
-          </code>
+          <motion.code
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.15 }}
+            className="text-2xl font-black tracking-wider bg-white border-2 border-primary rounded-xl px-5 py-3"
+          >
+            <CodeReveal code={confirmedCode} />
+          </motion.code>
           <button
             onClick={() => {
               navigator.clipboard.writeText(confirmedCode);
@@ -292,11 +306,23 @@ export default function BookPage() {
       <p className="text-sm font-semibold text-muted">
         {t("wiz_step")} {draft.step} {t("wiz_of")} 5
       </p>
-      <div className="mt-2 h-1.5 rounded-full bg-muted-bg overflow-hidden">
-        <div
-          className="h-full bg-accent rounded-full transition-all duration-300"
-          style={{ width: `${(draft.step / 5) * 100}%` }}
-        />
+      <div className="relative mt-2">
+        <div className="h-1.5 rounded-full bg-muted-bg overflow-hidden">
+          <div
+            className="h-full bg-accent rounded-full transition-all duration-500"
+            style={{ width: `${(draft.step / 5) * 100}%` }}
+          />
+        </div>
+        {/* The journey metaphor: your booking sails toward Douala */}
+        <motion.span
+          aria-hidden
+          className="absolute -top-5"
+          initial={false}
+          animate={{ left: `calc(${(draft.step / 5) * 100}% - 18px)` }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <Ship className="w-4 h-4 text-primary" />
+        </motion.span>
       </div>
       <h1 className="mt-4 text-2xl font-black text-primary-dark">
         {stepTitles[draft.step - 1]}
@@ -587,9 +613,14 @@ export default function BookPage() {
         <div className="mx-auto max-w-2xl px-4 py-3 flex items-center justify-between gap-3">
           <p className="text-sm">
             <span className="text-muted">{t("quote_total_from")} : </span>
-            <span className="font-black text-primary-dark text-lg">
-              {quote ? euro(displayTotal) : "—"}
-            </span>
+            {quote ? (
+              <PriceTicker
+                cents={displayTotal}
+                className="font-black text-primary-dark text-lg"
+              />
+            ) : (
+              <span className="font-black text-primary-dark text-lg">—</span>
+            )}
           </p>
           <div className="flex gap-2">
             {draft.step > 1 && (
