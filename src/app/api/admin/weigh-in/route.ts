@@ -32,19 +32,18 @@ export async function POST(req: NextRequest) {
     .get();
   if (!parcel) return NextResponse.json({ error: "no_parcel" }, { status: 404 });
 
-  const newPrice = priceForEstimate(
-    {
-      weightKg: actualWeightKg,
-      dims: { l: parcel.estL, w: parcel.estW, h: parcel.estH },
-      packagingType: parcel.packagingType,
-      fragile: parcel.fragile,
-      confidence: 1,
-      summaryFr: "",
-      summaryEn: "",
-      estimatedBy: "heuristic",
-    },
-    order.pickupCents > 0 ? undefined : undefined
-  );
+  const dims = { l: parcel.estL, w: parcel.estW, h: parcel.estH };
+  const newPrice = priceForEstimate({
+    weightKg: actualWeightKg,
+    volumeM3: (dims.l * dims.w * dims.h) / 1e6,
+    dims,
+    itemClass: parcel.packagingType as never,
+    fragile: parcel.fragile,
+    confidence: 1,
+    summaryFr: "",
+    summaryEn: "",
+    estimatedBy: "heuristic",
+  });
   // Keep original pickup price — distance didn't change at weigh-in
   const newTotal =
     newPrice.packagingCents + newPrice.shippingCents + order.pickupCents;

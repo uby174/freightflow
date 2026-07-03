@@ -9,8 +9,8 @@ export const TEMPLATES: Record<MilestoneKey, { fr: string; en: string }> = {
     en: "Your order is confirmed. We are getting ready to receive your parcel.",
   },
   received_warehouse: {
-    fr: "Votre colis est bien arrivé dans notre entrepôt de Strasbourg. Il sera pesé et emballé avec soin.",
-    en: "Your parcel has arrived at our Strasbourg warehouse. It will be weighed and carefully packed.",
+    fr: "Votre colis est bien arrivé à notre terminal de Bischwiller. Il sera pesé et conditionné avec soin.",
+    en: "Your shipment has arrived at our Bischwiller terminal. It will be weighed and carefully conditioned.",
   },
   consolidated: {
     fr: "Votre colis a rejoint le conteneur en préparation. Prochaine étape : le départ du port.",
@@ -37,8 +37,8 @@ export const TEMPLATES: Record<MilestoneKey, { fr: string; en: string }> = {
     en: "Your parcel is out for delivery! Our local courier will contact the recipient.",
   },
   delivered: {
-    fr: "Livré ! Votre colis est arrivé à destination. Merci d'avoir choisi CamFret.",
-    en: "Delivered! Your parcel has reached its destination. Thank you for choosing CamFret.",
+    fr: "Livré ! Votre colis est arrivé à destination. Merci d'avoir choisi SN Groupage Solutions.",
+    en: "Delivered! Your shipment has reached its destination. Thank you for choosing SN Groupage Solutions.",
   },
 };
 
@@ -80,10 +80,10 @@ async function aiRewrite(
       model: ANTHROPIC_MODEL,
       max_tokens: 300,
       system:
-        "You write shipment status updates for CamFret, a friendly France→Cameroon shipping company. " +
+        "You write shipment status updates for SN Groupage Solutions, a friendly Bischwiller (France) → Douala (Cameroon) shipping company. " +
         "Rewrite the raw logistics event into ONE warm, reassuring customer sentence, in French AND English. " +
         "NEVER mention any company, carrier, vessel, agent or courier name, or any reference/booking number — " +
-        "use generic terms (notre entrepôt, le navire, notre agent local, notre livreur). " +
+        "use generic terms (notre terminal, le navire, notre agent local, notre livreur). " +
         'Respond ONLY with JSON: {"fr":"...","en":"..."}',
       messages: [
         {

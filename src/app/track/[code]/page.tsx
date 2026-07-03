@@ -102,7 +102,7 @@ export default function TrackingPage({
           </h1>
           <p className="mt-1 text-sm text-muted flex items-center gap-1.5">
             <MapPin className="w-4 h-4" aria-hidden />
-            Strasbourg {t("track_to")} {data.receiverCity} · {data.receiverName}
+            Bischwiller {t("track_to")} {data.receiverCity} · {data.receiverName}
           </p>
         </div>
         {data.departure && (

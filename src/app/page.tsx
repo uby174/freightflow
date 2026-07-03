@@ -1,23 +1,45 @@
 "use client";
 
-import useSWRLikeDepartures from "@/components/useDepartures";
+import useDepartures from "@/components/useDepartures";
 import { QuoteWidget } from "@/components/QuoteWidget";
-import { useLocale, useT } from "@/lib/i18n";
+import { useLocale, useT, type DictKey } from "@/lib/i18n";
 import {
   PencilLine,
   Truck,
   Radar,
   Ship,
   CalendarDays,
-  ShieldCheck,
   MessageCircle,
   Quote,
+  Car,
+  Bike,
+  WashingMachine,
+  Sofa,
+  Package,
+  ShoppingBag,
+  Tv,
+  Grid3x3,
+  Boxes,
+  Sparkles,
 } from "lucide-react";
+
+const GOODS: Array<[typeof Car, DictKey]> = [
+  [Car, "g_cars"],
+  [Bike, "g_motos"],
+  [WashingMachine, "g_appliances"],
+  [Sofa, "g_furniture"],
+  [Package, "g_boxes"],
+  [ShoppingBag, "g_bags"],
+  [Tv, "g_tv"],
+  [Grid3x3, "g_tiles"],
+  [Boxes, "g_pallets"],
+  [Sparkles, "g_more"],
+];
 
 export default function Landing() {
   const t = useT();
   const { locale } = useLocale();
-  const departures = useSWRLikeDepartures();
+  const departures = useDepartures();
 
   const fmt = (ts: number) =>
     new Date(ts).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB", {
@@ -26,24 +48,38 @@ export default function Landing() {
       month: "long",
     });
 
+  const nextMonth =
+    departures[0] &&
+    new Date(departures[0].departsAt).toLocaleDateString(
+      locale === "fr" ? "fr-FR" : "en-GB",
+      { month: "long", year: "numeric" }
+    );
+
   return (
     <div>
       {/* Hero — instant quote, price before personal details */}
       <section className="bg-gradient-to-b from-white to-surface border-b border-border">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20 grid lg:grid-cols-2 gap-10 items-center">
           <div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-primary-dark leading-[1.05]">
+            <span className="inline-flex items-center gap-2 rounded-full bg-gold text-on-gold px-4 py-1.5 text-sm font-bold">
+              <CalendarDays className="w-4 h-4" aria-hidden />
+              {t("next_departure_label")} :{" "}
+              <span className="uppercase">
+                {nextMonth ?? t("next_departure_soon")}
+              </span>
+            </span>
+            <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter text-primary leading-[1.05]">
               {t("hero_title")}
             </h1>
             <p className="mt-5 text-lg text-muted max-w-lg">{t("hero_sub")}</p>
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-medium">
-                <Ship className="w-4 h-4 text-primary" aria-hidden />
-                Strasbourg → Douala · Yaoundé
+                <Ship className="w-4 h-4 text-accent" aria-hidden />
+                Bischwiller → Douala (Akwa)
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-medium">
-                <ShieldCheck className="w-4 h-4 text-success" aria-hidden />
-                {locale === "fr" ? "Pesée et emballage inclus" : "Weighing & packing included"}
+                <Car className="w-4 h-4 text-primary" aria-hidden />
+                {locale === "fr" ? "Du carton à la voiture" : "From a box to a car"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-medium">
                 <MessageCircle className="w-4 h-4 text-success" aria-hidden />
@@ -57,9 +93,27 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Goods we transport */}
+      <section className="mx-auto max-w-6xl px-4 py-14">
+        <h2 className="text-3xl font-black tracking-tight text-primary text-center">
+          {t("goods_title")}
+        </h2>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          {GOODS.map(([Icon, key]) => (
+            <span
+              key={key}
+              className="inline-flex items-center gap-2 rounded-full bg-white border border-border px-4 py-2.5 text-sm font-semibold hover:border-accent transition-colors"
+            >
+              <Icon className="w-4 h-4 text-accent" aria-hidden />
+              {t(key)}
+            </span>
+          ))}
+        </div>
+      </section>
+
       {/* How it works */}
-      <section id="how" className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="text-3xl font-black tracking-tight text-primary-dark text-center">
+      <section id="how" className="mx-auto max-w-6xl px-4 pb-16">
+        <h2 className="text-3xl font-black tracking-tight text-primary text-center">
           {t("how_title")}
         </h2>
         <div className="mt-10 grid sm:grid-cols-3 gap-6">
@@ -75,20 +129,20 @@ export default function Landing() {
               className="rounded-2xl bg-white border border-border p-6 hover:shadow-lg hover:shadow-blue-900/5 transition-shadow"
             >
               <div className="w-11 h-11 rounded-xl bg-surface flex items-center justify-center">
-                <Icon className="w-5 h-5 text-primary" aria-hidden />
+                <Icon className="w-5 h-5 text-accent" aria-hidden />
               </div>
-              <h3 className="mt-4 font-bold text-lg">{t(titleKey)}</h3>
+              <h3 className="mt-4 font-bold text-lg text-primary">{t(titleKey)}</h3>
               <p className="mt-1.5 text-sm text-muted">{t(descKey)}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Consolidation calendar — operational reality as a trust signal */}
-      <section className="bg-primary-dark text-white">
+      {/* Consolidation calendar */}
+      <section className="bg-primary text-white">
         <div className="mx-auto max-w-6xl px-4 py-14">
           <div className="flex items-center gap-3">
-            <CalendarDays className="w-7 h-7 text-accent" aria-hidden />
+            <CalendarDays className="w-7 h-7 text-gold" aria-hidden />
             <h2 className="text-3xl font-black tracking-tight">{t("cal_title")}</h2>
           </div>
           <p className="mt-2 text-blue-200">{t("cal_sub")}</p>
@@ -98,7 +152,7 @@ export default function Landing() {
                 key={d.id}
                 className="rounded-2xl bg-white/10 border border-white/15 p-5"
               >
-                <p className="font-bold text-lg">{d.label}</p>
+                <p className="font-bold text-lg text-gold">{d.label}</p>
                 <p className="mt-2 text-sm text-blue-200">
                   {t("wiz_departs")} {d.port} :{" "}
                   <span className="text-white font-semibold">{fmt(d.departsAt)}</span>
@@ -120,30 +174,30 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials — names + city pairs, per diaspora trust research */}
+      {/* Testimonials */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="text-3xl font-black tracking-tight text-primary-dark text-center">
+        <h2 className="text-3xl font-black tracking-tight text-primary text-center">
           {t("trust_title")}
         </h2>
         <div className="mt-10 grid sm:grid-cols-3 gap-6">
           {[
             {
               name: "Marie N.",
-              route: "Strasbourg → Douala",
-              fr: "Le carton est arrivé complet, rien ne manquait. Les messages WhatsApp à chaque étape m'ont vraiment rassurée.",
-              en: "The box arrived complete, nothing missing. The WhatsApp updates at every step really reassured me.",
+              route: "Bischwiller → Douala",
+              fr: "Mon réfrigérateur et mes cartons sont arrivés intacts. Les messages WhatsApp à chaque étape m'ont vraiment rassurée.",
+              en: "My fridge and boxes arrived intact. The WhatsApp updates at every step really reassured me.",
             },
             {
               name: "Serge T.",
-              route: "Colmar → Yaoundé",
-              fr: "L'enlèvement à domicile m'a évité deux heures de route. Prix annoncé, prix payé.",
-              en: "Home pickup saved me a two-hour drive. The price quoted was the price paid.",
+              route: "Haguenau → Douala",
+              fr: "J'ai envoyé une moto et deux palettes. L'enlèvement à domicile m'a évité la logistique. Prix annoncé, prix payé.",
+              en: "I sent a motorcycle and two pallets. Home pickup saved me the logistics. The price quoted was the price paid.",
             },
             {
               name: "Aïcha B.",
-              route: "Mulhouse → Douala",
-              fr: "Ma mère a reçu le colis à Bonabéri. Elle a pu suivre le camion de livraison, incroyable.",
-              en: "My mother received the parcel in Bonabéri. She could follow the delivery — incredible.",
+              route: "Strasbourg → Douala",
+              fr: "Ma mère a reçu le colis à Akwa. Elle a pu suivre la livraison en direct, incroyable.",
+              en: "My mother received the parcel in Akwa. She could follow the delivery live — incredible.",
             },
           ].map((tm) => (
             <figure
@@ -155,7 +209,7 @@ export default function Landing() {
                 {locale === "fr" ? tm.fr : tm.en}
               </blockquote>
               <figcaption className="mt-4 text-sm">
-                <span className="font-bold">{tm.name}</span>
+                <span className="font-bold text-primary">{tm.name}</span>
                 <span className="text-muted"> · {tm.route}</span>
               </figcaption>
             </figure>
@@ -165,43 +219,43 @@ export default function Landing() {
 
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-4 pb-8">
-        <h2 className="text-3xl font-black tracking-tight text-primary-dark text-center">
+        <h2 className="text-3xl font-black tracking-tight text-primary text-center">
           {t("faq_title")}
         </h2>
         <div className="mt-8 space-y-3">
           {[
             {
+              qFr: "Que puis-je envoyer ?",
+              aFr: "Voitures, motos, gros et petits électroménagers, meubles, cartons, sacs badjock, TV, carreaux, palettes et bien plus — du simple colis à la marchandise volumineuse.",
+              qEn: "What can I send?",
+              aEn: "Cars, motorcycles, large and small appliances, furniture, boxes, badjock bags, TVs, tiles, pallets and much more — from a single parcel to bulky cargo.",
+            },
+            {
               qFr: "Combien de temps dure le transport ?",
-              aFr: "Par voie maritime, comptez 4 à 8 semaines porte à porte selon la date de départ du conteneur et le dédouanement à Douala.",
+              aFr: "Par groupage maritime, comptez 4 à 8 semaines porte à porte selon la date de départ du conteneur et le dédouanement à Douala.",
               qEn: "How long does shipping take?",
-              aEn: "By sea, allow 4–8 weeks door to door depending on the container departure date and customs clearance in Douala.",
+              aEn: "By sea groupage, allow 4–8 weeks door to door depending on the container departure date and customs clearance in Douala.",
             },
             {
               qFr: "Comment est calculé le prix ?",
-              aFr: "Emballage selon notre grille tarifaire + transport au poids. Le prix est confirmé au pesage à l'entrepôt — s'il change de plus de 15 %, nous vous prévenons avant l'expédition.",
+              aFr: "Conditionnement selon le type de marchandise + fret au poids ou au volume (le plus élevé des deux, comme tout groupage). Le prix est confirmé au pesage à notre terminal — s'il change de plus de 15 %, nous vous prévenons avant l'expédition.",
               qEn: "How is the price calculated?",
-              aEn: "Packaging from our price chart + shipping by weight. The price is confirmed at warehouse weigh-in — if it changes by more than 15%, we tell you before shipping.",
+              aEn: "Conditioning by cargo type + freight by weight or volume (whichever is greater, as in all groupage). The price is confirmed at our terminal weigh-in — if it changes by more than 15%, we tell you before shipping.",
             },
             {
               qFr: "Qui livre au Cameroun ?",
-              aFr: "CamFret gère votre colis de bout en bout, avec notre agent local à Douala et Yaoundé. Un seul interlocuteur : nous.",
+              aFr: "SN Groupage Solutions gère votre envoi de bout en bout, avec notre agent local à Douala (Akwa). Un seul interlocuteur : nous.",
               qEn: "Who delivers in Cameroon?",
-              aEn: "CamFret handles your parcel end to end, with our local agent in Douala and Yaoundé. One single point of contact: us.",
-            },
-            {
-              qFr: "Que ne puis-je pas envoyer ?",
-              aFr: "Produits inflammables, batteries au lithium seules, denrées périssables, espèces et objets interdits par la douane camerounaise.",
-              qEn: "What can't I send?",
-              aEn: "Flammable goods, standalone lithium batteries, perishables, cash, and items prohibited by Cameroonian customs.",
+              aEn: "SN Groupage Solutions handles your shipment end to end, with our local agent in Douala (Akwa). One single point of contact: us.",
             },
           ].map((f) => (
             <details
               key={f.qFr}
               className="group rounded-xl bg-white border border-border px-5 py-4"
             >
-              <summary className="font-semibold text-sm list-none flex justify-between items-center">
+              <summary className="font-semibold text-sm list-none flex justify-between items-center text-primary">
                 {locale === "fr" ? f.qFr : f.qEn}
-                <span className="text-muted group-open:rotate-45 transition-transform text-lg leading-none">
+                <span className="text-accent group-open:rotate-45 transition-transform text-lg leading-none">
                   +
                 </span>
               </summary>

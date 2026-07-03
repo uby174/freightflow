@@ -93,14 +93,14 @@ export default function BookPage() {
   // Autosave: this audience gets interrupted and comes back later
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem("camfret_draft");
+      const saved = window.localStorage.getItem("sn_draft");
       if (saved) setDraft({ ...EMPTY, ...JSON.parse(saved) });
     } catch {}
     setLoaded(true);
   }, []);
   useEffect(() => {
     if (loaded && !confirmedCode) {
-      window.localStorage.setItem("camfret_draft", JSON.stringify(draft));
+      window.localStorage.setItem("sn_draft", JSON.stringify(draft));
     }
   }, [draft, loaded, confirmedCode]);
 
@@ -201,7 +201,7 @@ export default function BookPage() {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setConfirmedCode(data.code);
-      window.localStorage.removeItem("camfret_draft");
+      window.localStorage.removeItem("sn_draft");
     } catch {
       setSubmitError(true);
     } finally {

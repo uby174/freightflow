@@ -8,6 +8,8 @@ import { useLocale, useT } from "@/lib/i18n";
 interface QuoteResponse {
   estimate: {
     weightKg: number;
+    volumeM3: number;
+    itemClass: string;
     summaryFr: string;
     summaryEn: string;
     estimatedBy: string;
@@ -58,7 +60,7 @@ export function QuoteWidget() {
 
   function book() {
     window.localStorage.setItem(
-      "camfret_draft",
+      "sn_draft",
       JSON.stringify({ description, step: 1 })
     );
     router.push("/book");
@@ -68,10 +70,10 @@ export function QuoteWidget() {
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl shadow-blue-900/10 border border-border p-5 sm:p-6">
       <label
         htmlFor="quote-desc"
-        className="flex items-center gap-2 text-sm font-semibold text-primary-dark mb-2"
+        className="flex items-center gap-2 text-sm font-semibold text-primary mb-2"
       >
         <Sparkles className="w-4 h-4 text-accent" aria-hidden />
-        {t("nav_book")}
+        {t("quote_widget_title")}
       </label>
       <textarea
         id="quote-desc"
@@ -108,7 +110,7 @@ export function QuoteWidget() {
               {t("quote_estimated_weight")}
             </span>
             <span className="font-semibold">
-              ~{quote.estimate.weightKg} kg
+              ~{quote.estimate.weightKg} kg · {quote.estimate.volumeM3} m³
             </span>
           </p>
           <p className="flex items-center justify-between">
@@ -116,7 +118,7 @@ export function QuoteWidget() {
               <Box className="w-4 h-4" aria-hidden />
               {t("quote_packaging")}
             </span>
-            <span className="font-semibold">
+            <span className="font-semibold text-right">
               {locale === "fr"
                 ? quote.price.packagingLabelFr
                 : quote.price.packagingLabelEn}{" "}
@@ -134,7 +136,7 @@ export function QuoteWidget() {
           </p>
           <div className="border-t border-border pt-2 flex items-center justify-between">
             <span className="font-bold">{t("quote_total_from")}</span>
-            <span className="text-xl font-black text-primary-dark">
+            <span className="text-xl font-black text-primary">
               {euro(quote.price.totalCents)}
             </span>
           </div>

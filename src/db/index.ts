@@ -186,7 +186,7 @@ function seedIfEmpty(sqlite: Database.Database) {
     dep.run(
       departs.getTime(),
       cutoff.getTime(),
-      `Conteneur CF-${String(i + 1).padStart(2, "0")}`,
+      `Conteneur SN-${String(i + 1).padStart(2, "0")}`,
       "Le Havre",
       eta.getTime()
     );
@@ -198,17 +198,17 @@ function seedIfEmpty(sqlite: Database.Database) {
     "INSERT INTO forbidden_terms (term,replacement) VALUES (?,?)"
   );
   const terms: Array<[string, string]> = [
-    ["TransGlobal Express", "CamFret"],
-    ["TransGlobal", "CamFret"],
+    ["TransGlobal Express", "SN Groupage Solutions"],
+    ["TransGlobal", "SN Groupage Solutions"],
     ["TGE Cameroun SARL", "notre agent local"],
-    ["TGE", "CamFret"],
+    ["TGE", "SN Groupage Solutions"],
     ["MSC AMANDA", "le navire"],
     ["MSC", "notre transporteur maritime"],
     ["Maersk", "notre transporteur maritime"],
     ["CMA CGM", "notre transporteur maritime"],
     ["DHL", "notre réseau"],
     ["Express Union", "notre livreur local"],
-    ["Kehl", "la région de Strasbourg"],
+    ["Kehl", "la région de Bischwiller"],
   ];
   for (const [t, r] of terms) term.run(t, r);
 }

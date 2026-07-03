@@ -5,9 +5,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "CamFret — Colis France → Cameroun | Strasbourg",
+  title: "SN Groupage Solutions — Colis & marchandises France → Cameroun",
   description:
-    "Envoyez vos colis au Cameroun depuis Strasbourg. Estimation instantanée, départs réguliers vers Douala et Yaoundé, suivi clair à chaque étape.",
+    "SN Groupage Solutions : transport de colis et marchandises de Bischwiller (France) vers Douala (Akwa). Voitures, meubles, électroménagers, cartons — estimation instantanée et suivi WhatsApp.",
 };
 
 export default function RootLayout({

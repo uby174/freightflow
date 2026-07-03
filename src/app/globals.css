@@ -1,20 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  /* CamFret design system — tracking blue + delivery orange (ui-ux-pro-max) */
-  --color-primary: #2563eb;
-  --color-primary-dark: #1e40af;
+  /* SN Groupage Solutions — navy / red / gold (from brand flyers) */
+  --color-primary: #16234d; /* navy — headings, dark sections, primary buttons */
+  --color-primary-dark: #0e1833; /* deeper navy — hover / footer */
   --color-on-primary: #ffffff;
-  --color-secondary: #3b82f6;
-  --color-accent: #ea580c;
-  --color-accent-dark: #c2410c;
-  --color-surface: #eff6ff;
-  --color-foreground: #0f172a;
-  --color-muted: #64748b;
-  --color-muted-bg: #e9eff8;
-  --color-border: #bfdbfe;
+  --color-secondary: #2f3fae; /* SN badge blue */
+  --color-accent: #d21f28; /* red — main CTAs */
+  --color-accent-dark: #ab141c;
+  --color-gold: #f4b81e; /* gold — highlight badges */
+  --color-gold-dark: #d99e10;
+  --color-on-gold: #16234d;
+  --color-surface: #f4f6fb;
+  --color-foreground: #16223f;
+  --color-muted: #5b6472;
+  --color-muted-bg: #eaeef6;
+  --color-border: #d7deea;
   --color-destructive: #dc2626;
-  --color-success: #16a34a;
+  --color-success: #16a34a; /* WhatsApp green */
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, sans-serif;
@@ -52,6 +55,6 @@ label[for] {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-secondary);
   outline-offset: 2px;
 }

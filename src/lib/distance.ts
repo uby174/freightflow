@@ -24,7 +24,7 @@ async function geocode(
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=fr,de,be,lu,ch&q=${encodeURIComponent(query)}`;
     const res = await fetch(url, {
-      headers: { "User-Agent": "CamFret/0.1 (booking distance calc)" },
+      headers: { "User-Agent": "SN-Groupage/0.1 (booking distance calc)" },
       signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) return null;
@@ -59,7 +59,7 @@ async function osrmKm(lat: number, lng: number): Promise<number | null> {
   }
 }
 
-/** Road distance from the Strasbourg warehouse to a customer address. */
+/** Road distance from the Bischwiller terminal to a customer address. */
 export async function distanceFromWarehouse(
   address: string
 ): Promise<DistanceResult | null> {
