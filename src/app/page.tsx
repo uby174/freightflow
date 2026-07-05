@@ -5,6 +5,7 @@ import useDepartures from "@/components/useDepartures";
 import { QuoteWidget } from "@/components/QuoteWidget";
 import { HeroScene } from "@/components/motion/HeroScene";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
+import { WhatsAppTestimonials } from "@/components/motion/WhatsAppTestimonials";
 import { useLocale, useT, type DictKey } from "@/lib/i18n";
 import {
   PencilLine,
@@ -13,7 +14,6 @@ import {
   Ship,
   CalendarDays,
   MessageCircle,
-  Quote,
   Car,
   Bike,
   WashingMachine,
@@ -210,48 +210,14 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials — as a WhatsApp thread, the diaspora's trust channel */}
       <section className="mx-auto max-w-6xl px-4 py-16">
         <Reveal>
           <h2 className="text-3xl font-black tracking-tight text-primary text-center">
             {t("trust_title")}
           </h2>
+          <WhatsAppTestimonials locale={locale} />
         </Reveal>
-        <StaggerGroup className="mt-10 grid sm:grid-cols-3 gap-6">
-          {[
-            {
-              name: "Marie N.",
-              route: "Bischwiller → Douala",
-              fr: "Mon réfrigérateur et mes cartons sont arrivés intacts. Les messages WhatsApp à chaque étape m'ont vraiment rassurée.",
-              en: "My fridge and boxes arrived intact. The WhatsApp updates at every step really reassured me.",
-            },
-            {
-              name: "Serge T.",
-              route: "Haguenau → Douala",
-              fr: "J'ai envoyé une moto et deux palettes. L'enlèvement à domicile m'a évité la logistique. Prix annoncé, prix payé.",
-              en: "I sent a motorcycle and two pallets. Home pickup saved me the logistics. The price quoted was the price paid.",
-            },
-            {
-              name: "Aïcha B.",
-              route: "Strasbourg → Douala",
-              fr: "Ma mère a reçu le colis à Akwa. Elle a pu suivre la livraison en direct, incroyable.",
-              en: "My mother received the parcel in Akwa. She could follow the delivery live — incredible.",
-            },
-          ].map((tm) => (
-            <StaggerItem key={tm.name}>
-              <figure className="h-full rounded-2xl bg-white border border-border p-6">
-                <Quote className="w-6 h-6 text-accent" aria-hidden />
-                <blockquote className="mt-3 text-sm text-foreground">
-                  {locale === "fr" ? tm.fr : tm.en}
-                </blockquote>
-                <figcaption className="mt-4 text-sm">
-                  <span className="font-bold text-primary">{tm.name}</span>
-                  <span className="text-muted"> · {tm.route}</span>
-                </figcaption>
-              </figure>
-            </StaggerItem>
-          ))}
-        </StaggerGroup>
       </section>
 
       {/* FAQ */}

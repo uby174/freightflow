@@ -6,6 +6,20 @@ import { CheckCircle2, CircleDashed, Ship, MapPin } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useLocale, useT, type DictKey } from "@/lib/i18n";
 import type { MilestoneKey } from "@/lib/carrier/types";
+import { PassportStamp } from "@/components/motion/PassportStamp";
+
+// Short seal labels for the passport stamp, plus its ink colour.
+const STAMP: Record<MilestoneKey, { fr: string; en: string; ink?: string }> = {
+  booked: { fr: "RÉSERVÉ", en: "BOOKED" },
+  received_warehouse: { fr: "BISCHWILLER", en: "BISCHWILLER" },
+  consolidated: { fr: "GROUPAGE", en: "CONSOLIDATED" },
+  departed: { fr: "LE HAVRE", en: "LE HAVRE" },
+  at_sea: { fr: "EN MER", en: "AT SEA" },
+  arrived_douala: { fr: "DOUALA", en: "DOUALA" },
+  customs: { fr: "DOUANE", en: "CUSTOMS" },
+  out_for_delivery: { fr: "LIVRAISON", en: "OUT FOR DELIVERY" },
+  delivered: { fr: "LIVRÉ", en: "DELIVERED", ink: "#d21f28" },
+};
 
 interface TrackData {
   code: string;
@@ -202,14 +216,29 @@ export default function TrackingPage({
               >
                 {t(`ms_${m}` as DictKey)}
               </p>
-              {eventsFor.map((e) => (
+              {eventsFor.map((e, ei) => (
                 <motion.div
                   key={e.occurredAt}
-                  initial={{ opacity: 0, y: reduce ? 0 : 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  className="mt-1.5 rounded-xl bg-white border border-border px-4 py-2.5 text-sm"
+                  initial={
+                    reduce
+                      ? { opacity: 0 }
+                      : { opacity: 0, scale: 1.12, rotate: -2.5, y: -6 }
+                  }
+                  animate={{ opacity: 1, scale: 1, rotate: 0, y: 0 }}
+                  transition={
+                    reduce
+                      ? { duration: 0.25 }
+                      : { type: "spring", stiffness: 340, damping: 24 }
+                  }
+                  className="relative mt-1.5 mr-1 rounded-xl bg-white border border-border px-4 py-2.5 pr-14 text-sm"
                 >
+                  {/* Passport stamp presses onto the first check-in of each milestone */}
+                  {ei === 0 && (
+                    <PassportStamp
+                      label={locale === "fr" ? STAMP[m].fr : STAMP[m].en}
+                      ink={STAMP[m].ink}
+                    />
+                  )}
                   <p>{locale === "fr" ? e.messageFr : e.messageEn}</p>
                   <p className="mt-1 text-xs text-muted">{fmt(e.occurredAt)}</p>
                 </motion.div>
