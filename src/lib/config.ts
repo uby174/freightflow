@@ -48,6 +48,12 @@ export const CLASSIFY_MIN_CONFIDENCE = 0.6;
 export const MAX_LINE_QUANTITY = 50; // per catalog line
 export const MAX_ORDER_M3 = 40; // beyond this → human quote (part-load / FCL territory)
 
+// Custom (customer-measured) box bounds — sanity limits for the dimensions field
+export const CUSTOM_MIN_CM = 1;
+export const CUSTOM_MAX_CM = 600;
+export const CUSTOM_MIN_KG = 0.1;
+export const CUSTOM_MAX_KG = 2000;
+
 // Demo mode compresses the mock carrier timeline from weeks to seconds
 export const DEMO_FAST = (process.env.SN_DEMO_SPEED ?? "fast") === "fast";
 export const DEMO_EVENT_GAP_MS = DEMO_FAST ? 40_000 : 2 * 24 * 3600_000;

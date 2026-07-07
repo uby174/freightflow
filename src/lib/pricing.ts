@@ -1,5 +1,8 @@
-// PURE pricing. No I/O, no Date, no random. Identical `lines` → identical cents.
+// PURE pricing. No I/O, no Date, no random. Identical input → identical cents.
 // This is the guarantee behind "the same item always costs the same".
+//
+// A quote is a list of items, each either a CATALOG reference (fixed dims) or a
+// CUSTOM box (customer-measured dims + weight). Both price by the same rule.
 
 import {
   SEA_RATE_PER_M3_CENTS,
@@ -7,10 +10,30 @@ import {
   MIN_FREIGHT_CENTS,
 } from "./config";
 import { CATALOG_BY_ID, type ItemClass } from "./catalog/catalog";
-import type { MatchLine } from "./catalog/match";
+
+export interface CatalogRef {
+  catalogId: string;
+  quantity: number;
+}
+export interface CustomItem {
+  custom: {
+    lengthCm: number;
+    widthCm: number;
+    heightCm: number;
+    weightKg: number;
+    labelFr?: string;
+    labelEn?: string;
+  };
+  quantity: number;
+}
+export type QuoteItem = CatalogRef | CustomItem;
+
+function isCustom(i: QuoteItem): i is CustomItem {
+  return (i as CustomItem).custom !== undefined;
+}
 
 export interface PricedLine {
-  catalogId: string;
+  catalogId: string; // "custom" for measured boxes
   quantity: number;
   labelFr: string;
   labelEn: string;
@@ -18,6 +41,7 @@ export interface PricedLine {
   volumeM3: number; // aggregate for the line (0 for vehicles)
   weightKg: number; // aggregate for the line (0 for vehicles)
   vehicleCents: number; // flat total for vehicle lines, else 0
+  custom?: boolean;
 }
 
 export interface PriceQuote {
@@ -33,41 +57,69 @@ export interface PriceQuote {
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
+const round3 = (n: number) => Math.round(n * 1000) / 1000;
 
 /**
  * Groupage freight = max(Σ volume, Σ weight / 200) × €750/m³, floored at €45.
- * Vehicles are flat-rated. Pickup (distance-based) is added verbatim.
- * All money is integer cents; the ONLY rounding is the single freight round.
+ * Vehicles are flat-rated. Custom boxes price like any groupage item.
+ * Pickup (distance-based) is added verbatim. Money is integer cents; the ONLY
+ * rounding is the single freight round.
  */
-export function priceQuote(lines: MatchLine[], pickupCents = 0): PriceQuote {
+export function priceQuote(items: QuoteItem[], pickupCents = 0): PriceQuote {
   let sumVolM3 = 0;
   let sumWeightKg = 0;
   let vehicleCents = 0;
   let hasGroupage = false;
   const outLines: PricedLine[] = [];
 
-  for (const { catalogId, quantity } of lines) {
-    const item = CATALOG_BY_ID.get(catalogId);
-    if (!item || quantity <= 0) continue;
-    const q = Math.floor(quantity);
+  for (const item of items) {
+    const q = Math.floor(item.quantity);
+    if (q <= 0) continue;
 
-    if (item.flatPriceCents != null) {
-      const cents = item.flatPriceCents * q;
-      vehicleCents += cents;
-      outLines.push({
-        catalogId, quantity: q, labelFr: item.labelFr, labelEn: item.labelEn,
-        itemClass: item.class, volumeM3: 0, weightKg: 0, vehicleCents: cents,
-      });
-    } else {
+    if (isCustom(item)) {
+      const c = item.custom;
       hasGroupage = true;
-      const unitVol = (item.lengthCm * item.widthCm * item.heightCm) / 1_000_000;
+      const unitVol = (c.lengthCm * c.widthCm * c.heightCm) / 1_000_000;
       const lineVol = unitVol * q;
-      const lineWeight = item.weightKg * q;
+      const lineWeight = c.weightKg * q;
       sumVolM3 += lineVol;
       sumWeightKg += lineWeight;
       outLines.push({
-        catalogId, quantity: q, labelFr: item.labelFr, labelEn: item.labelEn,
-        itemClass: item.class, volumeM3: round2(lineVol), weightKg: lineWeight,
+        catalogId: "custom",
+        quantity: q,
+        labelFr:
+          c.labelFr ?? `Caisse sur mesure ${c.lengthCm}×${c.widthCm}×${c.heightCm} cm`,
+        labelEn:
+          c.labelEn ?? `Custom box ${c.lengthCm}×${c.widthCm}×${c.heightCm} cm`,
+        itemClass: "other",
+        volumeM3: round2(lineVol),
+        weightKg: lineWeight,
+        vehicleCents: 0,
+        custom: true,
+      });
+      continue;
+    }
+
+    const cat = CATALOG_BY_ID.get(item.catalogId);
+    if (!cat) continue;
+
+    if (cat.flatPriceCents != null) {
+      const cents = cat.flatPriceCents * q;
+      vehicleCents += cents;
+      outLines.push({
+        catalogId: cat.id, quantity: q, labelFr: cat.labelFr, labelEn: cat.labelEn,
+        itemClass: cat.class, volumeM3: 0, weightKg: 0, vehicleCents: cents,
+      });
+    } else {
+      hasGroupage = true;
+      const unitVol = (cat.lengthCm * cat.widthCm * cat.heightCm) / 1_000_000;
+      const lineVol = unitVol * q;
+      const lineWeight = cat.weightKg * q;
+      sumVolM3 += lineVol;
+      sumWeightKg += lineWeight;
+      outLines.push({
+        catalogId: cat.id, quantity: q, labelFr: cat.labelFr, labelEn: cat.labelEn,
+        itemClass: cat.class, volumeM3: round2(lineVol), weightKg: lineWeight,
         vehicleCents: 0,
       });
     }
@@ -83,7 +135,7 @@ export function priceQuote(lines: MatchLine[], pickupCents = 0): PriceQuote {
     lines: outLines,
     totalVolumeM3: round2(sumVolM3),
     totalWeightKg: Math.round(sumWeightKg * 10) / 10,
-    chargeableM3: round2(chargeableM3),
+    chargeableM3: round3(chargeableM3),
     freightCents,
     vehicleCents,
     pickupCents,

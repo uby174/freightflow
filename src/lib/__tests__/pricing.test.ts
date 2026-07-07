@@ -144,6 +144,52 @@ describe("classifier gate — never fabricate a price", () => {
   });
 });
 
+describe("custom (measured) boxes — deterministic exact quotes", () => {
+  it("prices a custom box by max(volume, weight/200) × €750", () => {
+    // 60×40×50 = 0.12 m³; 25 kg → 0.125 m³ chargeable (weight wins)
+    const q = priceQuote([
+      { quantity: 1, custom: { lengthCm: 60, widthCm: 40, heightCm: 50, weightKg: 25 } },
+    ]);
+    expect(q.chargeableM3).toBe(0.125);
+    expect(q.freightCents).toBe(9375);
+    expect(q.totalCents).toBe(9375);
+  });
+
+  it("applies the €45 floor to a tiny custom box", () => {
+    const q = priceQuote([
+      { quantity: 1, custom: { lengthCm: 30, widthCm: 20, heightCm: 20, weightKg: 2 } },
+    ]);
+    expect(q.freightCents).toBe(4500);
+  });
+
+  it("mixes custom + catalog + vehicle deterministically", () => {
+    const items = [
+      { catalogId: "frigo_standard", quantity: 1 },
+      { quantity: 2, custom: { lengthCm: 50, widthCm: 50, heightCm: 50, weightKg: 20 } },
+      { catalogId: "voiture_citadine", quantity: 1 },
+    ];
+    const a = JSON.stringify(priceQuote(items));
+    for (let i = 0; i < 50; i++) expect(JSON.stringify(priceQuote(items))).toBe(a);
+    const q = priceQuote(items);
+    expect(q.vehicleCents).toBe(65000);
+    expect(q.freightCents).toBeGreaterThan(0);
+  });
+});
+
+describe("assistant closest-match — deterministic & grounded", () => {
+  it("returns real catalog matches with prices for a known item", async () => {
+    const { closestMatches } = await import("@/lib/assist");
+    const s = closestMatches("un frigo", 3);
+    expect(s.length).toBeGreaterThan(0);
+    expect(s[0].catalogId).toBe("frigo_standard");
+    expect(s[0].priceCents).toBe(52650);
+  });
+  it("returns no fabricated suggestions for a truly unknown item", async () => {
+    const { closestMatches } = await import("@/lib/assist");
+    expect(closestMatches("un piano à queue", 3)).toEqual([]);
+  });
+});
+
 describe("catalog integrity", () => {
   it("every vehicle has a flat price; nothing else does", () => {
     for (const item of CATALOG_BY_ID.values()) {

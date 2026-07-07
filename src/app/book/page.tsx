@@ -10,11 +10,16 @@ import {
   Copy,
   PartyPopper,
   Ship,
+  Ruler,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useLocale, useT } from "@/lib/i18n";
 import { PriceTicker, CodeReveal } from "@/components/motion/PriceTicker";
+import { AssistPanel } from "@/components/AssistPanel";
+import { CustomBoxForm, type CustomBox } from "@/components/CustomBoxForm";
 import type { DepartureDto } from "@/components/useDepartures";
+
+type QuoteItemInput = { catalogId: string; quantity: number } | CustomBox;
 
 interface Draft {
   step: number;
@@ -34,7 +39,7 @@ interface Draft {
   receiverCity: string;
   neighborhood: string;
   landmark: string;
-  lines?: { catalogId: string; quantity: number }[];
+  lines?: QuoteItemInput[];
 }
 
 interface QuoteLineView {
@@ -53,8 +58,6 @@ interface QuoteState {
   totalCents: number;
   lines: QuoteLineView[];
 }
-
-const WHATSAPP = "33605775101";
 
 const EMPTY: Draft = {
   step: 1,
@@ -132,11 +135,18 @@ export default function BookPage() {
   );
   const displayTotal = (quote?.goodsCents ?? 0) + pickupCents;
 
-  async function refreshQuote(description: string) {
+  // Quote from the PINNED lines when we have them (preserves custom boxes /
+  // assistant-added items from the widget); otherwise classify the description.
+  async function refreshQuote(extra?: QuoteItemInput[]) {
+    const pinned = extra ?? draft.lines ?? [];
+    const body =
+      pinned.length > 0
+        ? { items: pinned }
+        : { description: draft.description };
     const res = await fetch("/api/quote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ description }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) return;
     const data = await res.json();
@@ -161,9 +171,17 @@ export default function BookPage() {
     set({ lines: data.lines });
   }
 
+  // Assistant / custom-box adds → pin and re-quote
+  function addItems(items: QuoteItemInput[]) {
+    const next = [...(draft.lines ?? []), ...items];
+    set({ lines: next });
+    refreshQuote(next);
+  }
+
   useEffect(() => {
-    if (loaded && draft.description.trim().length >= 2 && !quote && !needsReview) {
-      refreshQuote(draft.description);
+    const havePinned = (draft.lines?.length ?? 0) > 0;
+    if (loaded && (draft.description.trim().length >= 2 || havePinned) && !quote && !needsReview) {
+      refreshQuote();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded]);
@@ -367,29 +385,18 @@ export default function BookPage() {
             />
             {!quote && !needsReview && draft.description.trim().length >= 2 && (
               <button
-                onClick={() => refreshQuote(draft.description)}
+                onClick={() => refreshQuote()}
                 className="rounded-xl bg-primary hover:bg-primary-dark text-white font-bold px-5 py-2.5 text-sm transition-colors"
               >
                 {t("quote_button")}
               </button>
             )}
             {needsReview && (
-              <div className="rounded-xl bg-white border border-border p-4 text-sm">
-                <p className="font-bold text-primary">{t("quote_review_title")}</p>
-                <p className="mt-1 text-muted">{t("quote_review_desc")}</p>
-                <a
-                  href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
-                    (locale === "fr"
-                      ? "Bonjour, je souhaite un devis pour : "
-                      : "Hello, I'd like a quote for: ") + draft.description
-                  )}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-success text-white font-bold px-5 py-2.5"
-                >
-                  {t("quote_whatsapp")}
-                </a>
-              </div>
+              <AssistPanel
+                initialMessage={draft.description}
+                onAddCatalog={(id) => addItems([{ catalogId: id, quantity: 1 }])}
+                onAddCustom={(box) => addItems([box])}
+              />
             )}
             {quote && (
               <div className="rounded-xl bg-white border border-border p-4 text-sm space-y-2">
@@ -425,6 +432,17 @@ export default function BookPage() {
                 </div>
                 <p className="text-xs text-muted pt-1">{t("quote_note")}</p>
               </div>
+            )}
+            {quote && !needsReview && (
+              <details className="text-sm">
+                <summary className="inline-flex items-center gap-1.5 cursor-pointer font-semibold text-primary">
+                  <Ruler className="w-3.5 h-3.5" aria-hidden />
+                  {t("dim_toggle")}
+                </summary>
+                <div className="mt-2">
+                  <CustomBoxForm onAdd={(box) => addItems([box])} />
+                </div>
+              </details>
             )}
           </>
         )}

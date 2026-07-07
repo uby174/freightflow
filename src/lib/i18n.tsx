@@ -65,6 +65,31 @@ const dict = {
   quote_whatsapp: { fr: "Demander sur WhatsApp", en: "Ask on WhatsApp" },
   quote_review_unmatched: { fr: "À préciser", en: "To clarify" },
 
+  // ── Custom dimensions ──
+  dim_title: { fr: "Vous connaissez les dimensions ?", en: "Know your measurements?" },
+  dim_hint: {
+    fr: "Entrez la taille et le poids de votre caisse pour un devis exact, tout de suite.",
+    en: "Enter your box size and weight for an exact quote, right away.",
+  },
+  dim_length: { fr: "Longueur (cm)", en: "Length (cm)" },
+  dim_width: { fr: "Largeur (cm)", en: "Width (cm)" },
+  dim_height: { fr: "Hauteur (cm)", en: "Height (cm)" },
+  dim_weight: { fr: "Poids (kg)", en: "Weight (kg)" },
+  dim_qty: { fr: "Quantité", en: "Quantity" },
+  dim_add: { fr: "Ajouter au devis", en: "Add to quote" },
+  dim_toggle: { fr: "Ajouter une caisse sur mesure", en: "Add a custom box" },
+
+  // ── Inline assistant ──
+  assist_closest: { fr: "Articles les plus proches", en: "Closest items" },
+  assist_or_dims: { fr: "ou entrez vos dimensions", en: "or enter your dimensions" },
+  assist_ask_cta: { fr: "Une question ? Demandez à l'assistant", en: "Have a question? Ask the assistant" },
+  assist_ask_placeholder: {
+    fr: "Ex. : combien de temps pour Douala ? que puis-je envoyer ?",
+    en: "E.g.: how long to Douala? what can I ship?",
+  },
+  assist_thinking: { fr: "L'assistant réfléchit…", en: "The assistant is thinking…" },
+  assist_send: { fr: "Envoyer", en: "Send" },
+
   // ── Journey scene ──
   journey_title: {
     fr: "Vos colis voyagent ensemble",

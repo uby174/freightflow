@@ -12,14 +12,13 @@ import {
 import { PARCEL_PREFIX } from "./config";
 import { getCarrier } from "./carrier/fake";
 import { TEMPLATES } from "./sanitize";
-import type { MatchLine } from "./catalog/match";
-import type { PriceQuote } from "./pricing";
+import type { PriceQuote, QuoteItem } from "./pricing";
 
 export interface CreateOrderInput {
   locale: "fr" | "en";
   mode: "dropoff" | "pickup";
   contents: string;
-  lines: MatchLine[]; // pinned resolved catalog lines
+  lines: QuoteItem[]; // pinned resolved lines (catalog refs + custom boxes)
   quote: PriceQuote; // server-computed, from those lines
   classifySource: string; // ai | keyword | cache
   confidence: number;

@@ -2,27 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createOrder } from "@/lib/orders";
 import { classifyDescription } from "@/lib/classify";
-import { priceQuote } from "@/lib/pricing";
+import { priceQuote, type QuoteItem } from "@/lib/pricing";
+import { quoteItemSchema, coerceQuoteItems } from "@/lib/catalog/items";
 import { distanceFromWarehouse } from "@/lib/distance";
 import {
   PICKUP_MAX_KM,
   PICKUP_BASE_CENTS,
   PICKUP_PER_KM_CENTS,
 } from "@/lib/config";
-import { CATALOG_BY_ID } from "@/lib/catalog/catalog";
-import { MAX_LINE_QUANTITY } from "@/lib/config";
-import type { MatchLine } from "@/lib/catalog/match";
-
-const lineSchema = z.object({
-  catalogId: z.string(),
-  quantity: z.number().int().min(1).max(MAX_LINE_QUANTITY),
-});
 
 const bodySchema = z.object({
   locale: z.enum(["fr", "en"]).default("fr"),
   mode: z.enum(["dropoff", "pickup"]),
   contents: z.string().min(1).max(2000),
-  lines: z.array(lineSchema).optional(), // pinned from the quote step
+  lines: z.array(quoteItemSchema).optional(), // pinned from the quote step (catalog + custom)
   departureId: z.number().int().positive(),
   sender: z.object({
     name: z.string().min(2).max(120),
@@ -52,14 +45,14 @@ export async function POST(req: NextRequest) {
   }
   const input = parsed.data;
 
-  // Resolve the pinned lines. Trust ONLY catalog ids (price is fixed by the
-  // catalog, so a tampered line just prices per catalog). If the client didn't
-  // send lines, re-classify server-side from the description.
-  let lines: MatchLine[] = [];
+  // Resolve the pinned lines. Catalog refs are validated against the catalog
+  // (price is fixed there); custom boxes are bounds-checked. If the client sent
+  // no lines, re-classify server-side from the description.
+  let lines: QuoteItem[] = [];
   let source = "pinned";
   let confidence = 0.9;
   if (input.lines?.length) {
-    lines = input.lines.filter((l) => CATALOG_BY_ID.has(l.catalogId));
+    lines = coerceQuoteItems(input.lines);
   }
   if (lines.length === 0) {
     const cls = await classifyDescription(input.contents);
