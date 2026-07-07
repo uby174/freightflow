@@ -23,6 +23,7 @@ export const orders = sqliteTable("orders", {
   receiverNeighborhood: text("receiver_neighborhood"),
   receiverLandmark: text("receiver_landmark"),
   contents: text("contents").notNull(),
+  linesJson: text("lines_json"), // pinned resolved catalog lines [{catalogId,quantity}]
   departureId: integer("departure_id"),
   packagingCents: integer("packaging_cents").notNull(),
   shippingCents: integer("shipping_cents").notNull(),

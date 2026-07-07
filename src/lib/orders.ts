@@ -12,15 +12,17 @@ import {
 import { PARCEL_PREFIX } from "./config";
 import { getCarrier } from "./carrier/fake";
 import { TEMPLATES } from "./sanitize";
-import type { Estimate } from "./estimator";
-import type { PriceBreakdown } from "./pricing";
+import type { MatchLine } from "./catalog/match";
+import type { PriceQuote } from "./pricing";
 
 export interface CreateOrderInput {
   locale: "fr" | "en";
   mode: "dropoff" | "pickup";
   contents: string;
-  estimate: Estimate;
-  price: PriceBreakdown;
+  lines: MatchLine[]; // pinned resolved catalog lines
+  quote: PriceQuote; // server-computed, from those lines
+  classifySource: string; // ai | keyword | cache
+  confidence: number;
   departureId: number;
   sender: {
     name: string;
@@ -59,6 +61,20 @@ function generateCode(): string {
 export async function createOrder(input: CreateOrderInput) {
   const code = generateCode();
   const now = new Date();
+  const q = input.quote;
+
+  // Aggregate parcel record: representative cube from chargeable volume,
+  // dominant cargo class, catalog-nominal weight (the reconciliation baseline).
+  const side = Math.max(
+    20,
+    Math.round(Math.cbrt(Math.max(q.chargeableM3, 0.001)) * 100)
+  );
+  const dominant =
+    q.lines.slice().sort((a, b) => b.volumeM3 - a.volumeM3)[0]?.itemClass ??
+    "parcel";
+  const fragile = q.lines.some(
+    (l) => l.itemClass === "tv" || l.itemClass === "appliance_large"
+  );
 
   const order = db
     .insert(orders)
@@ -77,11 +93,12 @@ export async function createOrder(input: CreateOrderInput) {
       receiverNeighborhood: input.receiver.neighborhood ?? null,
       receiverLandmark: input.receiver.landmark ?? null,
       contents: input.contents,
+      linesJson: JSON.stringify(input.lines),
       departureId: input.departureId,
-      packagingCents: input.price.packagingCents,
-      shippingCents: input.price.shippingCents,
-      pickupCents: input.price.pickupCents,
-      totalCents: input.price.totalCents,
+      packagingCents: 0,
+      shippingCents: q.goodsCents,
+      pickupCents: q.pickupCents,
+      totalCents: q.totalCents,
       createdAt: now,
     })
     .returning()
@@ -90,14 +107,14 @@ export async function createOrder(input: CreateOrderInput) {
   db.insert(parcels)
     .values({
       orderId: order.id,
-      estWeightKg: input.estimate.weightKg,
-      estL: input.estimate.dims.l,
-      estW: input.estimate.dims.w,
-      estH: input.estimate.dims.h,
-      packagingType: input.price.packagingType,
-      fragile: input.estimate.fragile,
-      confidence: input.estimate.confidence,
-      estimatedBy: input.estimate.estimatedBy,
+      estWeightKg: q.totalWeightKg,
+      estL: side,
+      estW: side,
+      estH: side,
+      packagingType: dominant,
+      fragile,
+      confidence: input.confidence,
+      estimatedBy: input.classifySource,
     })
     .run();
 
@@ -105,10 +122,10 @@ export async function createOrder(input: CreateOrderInput) {
     .values({
       orderId: order.id,
       version: 1,
-      packagingCents: input.price.packagingCents,
-      shippingCents: input.price.shippingCents,
-      pickupCents: input.price.pickupCents,
-      totalCents: input.price.totalCents,
+      packagingCents: 0,
+      shippingCents: q.goodsCents,
+      pickupCents: q.pickupCents,
+      totalCents: q.totalCents,
       distanceKm: input.pickupKm ?? null,
       distanceSource: input.pickupKm !== undefined ? "api" : null,
       reason: "initial",

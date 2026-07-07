@@ -33,34 +33,20 @@ export const PICKUP_MAX_KM = 200;
 export const RECONCILE_PCT = 0.15;
 export const RECONCILE_MIN_CENTS = 300;
 
-// Sea groupage is volumetric — freight = max(by weight, by volume), min per band.
-export const SEA_RATE_PER_M3_CENTS = 32000; // €320 / m³ (INDICATIVE)
+// ── Freight rate card (anchored on published market rates, France Fret Express) ──
+// Sea groupage to Cameroon: €750 / m³, volumetric rule 200 kg = 1 m³.
+// Freight is the greater of real volume and weight/200 — the "weight or measure"
+// rule — so a dense pallet of tiles and a light-but-bulky sofa both price fairly.
+export const SEA_RATE_PER_M3_CENTS = 75000; // €750 / m³
+export const VOLUMETRIC_KG_PER_M3 = 200; // 200 kg counts as 1 m³
+export const MIN_FREIGHT_CENTS = 4500; // €45 floor on the groupage portion of an order
 
-// Handling / conditioning fee by cargo class (INDICATIVE — replace with real chart)
-export const HANDLING: Record<
-  string,
-  { cents: number; fr: string; en: string }
-> = {
-  parcel: { cents: 400, fr: "Carton / colis", en: "Box / parcel" },
-  bag: { cents: 500, fr: "Sac / ballot", en: "Bag / bundle" },
-  tv: { cents: 1500, fr: "TV / écran (renforcé)", en: "TV / screen (reinforced)" },
-  tiles: { cents: 1500, fr: "Carreaux (palettisé)", en: "Tiles (palletised)" },
-  appliance_small: {
-    cents: 800,
-    fr: "Petit électroménager",
-    en: "Small appliance",
-  },
-  appliance_large: {
-    cents: 2500,
-    fr: "Gros électroménager",
-    en: "Large appliance",
-  },
-  furniture: { cents: 2000, fr: "Meuble", en: "Furniture" },
-  pallet: { cents: 3500, fr: "Palette", en: "Pallet" },
-  vehicle_moto: { cents: 6000, fr: "Moto / scooter", en: "Motorcycle / scooter" },
-  vehicle_car: { cents: 15000, fr: "Véhicule", en: "Vehicle" },
-  other: { cents: 1000, fr: "Marchandise diverse", en: "General goods" },
-};
+// Coverage / trust gate: below this classifier confidence, or when any part of the
+// description can't be matched to the catalog, we do NOT invent a price — we defer
+// to a human quote ("we'll confirm on WhatsApp") rather than risk an inconsistent one.
+export const CLASSIFY_MIN_CONFIDENCE = 0.6;
+export const MAX_LINE_QUANTITY = 50; // per catalog line
+export const MAX_ORDER_M3 = 40; // beyond this → human quote (part-load / FCL territory)
 
 // Demo mode compresses the mock carrier timeline from weeks to seconds
 export const DEMO_FAST = (process.env.SN_DEMO_SPEED ?? "fast") === "fast";

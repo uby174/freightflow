@@ -2,33 +2,41 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Scale, Box, Ship, Sparkles } from "lucide-react";
+import { Loader2, Ship, Sparkles, Package, MessageCircle } from "lucide-react";
 import { useLocale, useT } from "@/lib/i18n";
 import { PriceTicker } from "@/components/motion/PriceTicker";
 
+interface PricedLine {
+  catalogId: string;
+  quantity: number;
+  labelFr: string;
+  labelEn: string;
+  itemClass: string;
+  volumeM3: number;
+  weightKg: number;
+  vehicleCents: number;
+}
 interface QuoteResponse {
-  estimate: {
-    weightKg: number;
-    volumeM3: number;
-    itemClass: string;
-    summaryFr: string;
-    summaryEn: string;
-    estimatedBy: string;
-  };
-  price: {
-    packagingCents: number;
-    shippingCents: number;
+  needsReview: boolean;
+  reviewReason?: string;
+  unmatched?: string[];
+  source?: string;
+  lines?: { catalogId: string; quantity: number }[];
+  quote?: {
+    lines: PricedLine[];
+    chargeableM3: number;
+    totalWeightKg: number;
+    freightCents: number;
+    vehicleCents: number;
+    pickupCents: number;
+    goodsCents: number;
     totalCents: number;
-    packagingLabelFr: string;
-    packagingLabelEn: string;
   };
 }
 
+const WHATSAPP = "33605775101";
 function euro(cents: number) {
-  return (cents / 100).toLocaleString("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-  });
+  return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
 }
 
 export function QuoteWidget() {
@@ -37,11 +45,11 @@ export function QuoteWidget() {
   const router = useRouter();
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [quote, setQuote] = useState<QuoteResponse | null>(null);
+  const [resp, setResp] = useState<QuoteResponse | null>(null);
   const [error, setError] = useState(false);
 
   async function getQuote() {
-    if (description.trim().length < 3 || loading) return;
+    if (description.trim().length < 2 || loading) return;
     setLoading(true);
     setError(false);
     try {
@@ -51,7 +59,7 @@ export function QuoteWidget() {
         body: JSON.stringify({ description }),
       });
       if (!res.ok) throw new Error();
-      setQuote(await res.json());
+      setResp(await res.json());
     } catch {
       setError(true);
     } finally {
@@ -62,10 +70,12 @@ export function QuoteWidget() {
   function book() {
     window.localStorage.setItem(
       "sn_draft",
-      JSON.stringify({ description, step: 1 })
+      JSON.stringify({ description, lines: resp?.lines ?? [], step: 1 })
     );
     router.push("/book");
   }
+
+  const q = resp?.quote;
 
   return (
     <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl shadow-blue-900/10 border border-border p-5 sm:p-6">
@@ -86,7 +96,7 @@ export function QuoteWidget() {
       />
       <button
         onClick={getQuote}
-        disabled={loading || description.trim().length < 3}
+        disabled={loading || description.trim().length < 2}
         className="mt-3 w-full rounded-xl bg-accent hover:bg-accent-dark disabled:opacity-50 text-white font-bold py-3 flex items-center justify-center gap-2 transition-colors"
       >
         {loading ? (
@@ -99,46 +109,75 @@ export function QuoteWidget() {
         )}
       </button>
 
-      {error && (
-        <p className="mt-3 text-sm text-destructive">{t("quote_error")}</p>
+      {error && <p className="mt-3 text-sm text-destructive">{t("quote_error")}</p>}
+
+      {/* Human-quote path — never fabricate a number we can't stand behind */}
+      {resp?.needsReview && (
+        <div className="mt-4 rounded-xl bg-surface border border-border p-4 text-sm">
+          <p className="font-bold text-primary">{t("quote_review_title")}</p>
+          <p className="mt-1 text-muted">{t("quote_review_desc")}</p>
+          {resp.unmatched && resp.unmatched.length > 0 && (
+            <p className="mt-2 text-xs text-muted">
+              {t("quote_review_unmatched")} : {resp.unmatched.join(", ")}
+            </p>
+          )}
+          <a
+            href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
+              (locale === "fr" ? "Bonjour, je souhaite un devis pour : " : "Hello, I'd like a quote for: ") +
+                description
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 w-full rounded-xl bg-success hover:brightness-95 text-white font-bold py-3 flex items-center justify-center gap-2 transition"
+          >
+            <MessageCircle className="w-4 h-4" aria-hidden />
+            {t("quote_whatsapp")}
+          </a>
+        </div>
       )}
 
-      {quote && (
-        <div className="mt-4 rounded-xl bg-surface border border-border p-4 space-y-2 text-sm">
-          <p className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-muted">
-              <Scale className="w-4 h-4" aria-hidden />
-              {t("quote_estimated_weight")}
-            </span>
-            <span className="font-semibold">
-              ~{quote.estimate.weightKg} kg · {quote.estimate.volumeM3} m³
-            </span>
+      {/* Itemized deterministic quote */}
+      {q && !resp?.needsReview && (
+        <div className="mt-4 rounded-xl bg-surface border border-border p-4 space-y-2.5 text-sm">
+          <p className="flex items-center gap-2 text-muted font-semibold">
+            <Package className="w-4 h-4" aria-hidden />
+            {t("quote_items")}
           </p>
-          <p className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-muted">
-              <Box className="w-4 h-4" aria-hidden />
-              {t("quote_packaging")}
-            </span>
-            <span className="font-semibold text-right">
-              {locale === "fr"
-                ? quote.price.packagingLabelFr
-                : quote.price.packagingLabelEn}{" "}
-              · {euro(quote.price.packagingCents)}
-            </span>
-          </p>
-          <p className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-muted">
-              <Ship className="w-4 h-4" aria-hidden />
-              {t("quote_shipping")}
-            </span>
-            <span className="font-semibold">
-              {euro(quote.price.shippingCents)}
-            </span>
-          </p>
+          <ul className="space-y-1">
+            {q.lines.map((l) => (
+              <li key={l.catalogId} className="flex justify-between gap-2">
+                <span>
+                  {l.quantity} × {locale === "fr" ? l.labelFr : l.labelEn}
+                </span>
+                {l.vehicleCents > 0 ? (
+                  <span className="font-semibold">{euro(l.vehicleCents)}</span>
+                ) : (
+                  <span className="text-muted">{l.volumeM3} m³</span>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="border-t border-border pt-2 space-y-1">
+            {q.freightCents > 0 && (
+              <p className="flex justify-between">
+                <span className="flex items-center gap-2 text-muted">
+                  <Ship className="w-4 h-4" aria-hidden />
+                  {t("quote_freight")} ({q.chargeableM3} m³)
+                </span>
+                <span className="font-semibold">{euro(q.freightCents)}</span>
+              </p>
+            )}
+            {q.vehicleCents > 0 && (
+              <p className="flex justify-between">
+                <span className="text-muted">{t("quote_vehicles")}</span>
+                <span className="font-semibold">{euro(q.vehicleCents)}</span>
+              </p>
+            )}
+          </div>
           <div className="border-t border-border pt-2 flex items-center justify-between">
             <span className="font-bold">{t("quote_total_from")}</span>
             <PriceTicker
-              cents={quote.price.totalCents}
+              cents={q.totalCents}
               className="text-xl font-black text-primary"
             />
           </div>

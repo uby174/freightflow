@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { estimateParcel } from "@/lib/estimator";
-import { priceForEstimate } from "@/lib/pricing";
+import { classifyDescription } from "@/lib/classify";
+import { priceQuote } from "@/lib/pricing";
 import { distanceFromWarehouse } from "@/lib/distance";
 import { nextDepartures } from "@/lib/shipdate";
-import { PICKUP_MAX_KM } from "@/lib/config";
+import {
+  PICKUP_MAX_KM,
+  PICKUP_BASE_CENTS,
+  PICKUP_PER_KM_CENTS,
+} from "@/lib/config";
 
 const bodySchema = z.object({
-  description: z.string().min(3).max(2000),
+  description: z.string().min(1).max(2000),
   pickupAddress: z.string().max(300).optional(),
 });
 
@@ -18,6 +22,30 @@ export async function POST(req: NextRequest) {
   }
   const { description, pickupAddress } = parsed.data;
 
+  const departures = nextDepartures(3).map((d) => ({
+    id: d.id,
+    departsAt: d.departsAt.getTime(),
+    cutoffAt: d.cutoffAt.getTime(),
+    label: d.label,
+    port: d.port,
+    etaDouala: d.etaDouala.getTime(),
+  }));
+
+  // Classify first — same text always resolves to the same catalog lines.
+  const cls = await classifyDescription(description);
+
+  // Coverage / confidence gate: never invent a price for what we can't map.
+  if (cls.needsReview) {
+    return NextResponse.json({
+      needsReview: true,
+      reviewReason: cls.reviewReason,
+      unmatched: cls.unmatched,
+      matched: cls.lines,
+      departures,
+    });
+  }
+
+  // Pickup distance (legitimately variable — separate from the goods price)
   let pickupKm: number | undefined;
   let pickupResolved: string | undefined;
   let pickupError: string | undefined;
@@ -30,24 +58,21 @@ export async function POST(req: NextRequest) {
       pickupResolved = dist.resolvedLabel;
     }
   }
+  const pickupCents =
+    pickupKm !== undefined
+      ? PICKUP_BASE_CENTS + Math.round(pickupKm * PICKUP_PER_KM_CENTS)
+      : 0;
 
-  const estimate = await estimateParcel(description);
-  const price = priceForEstimate(estimate, pickupKm);
-  const departures = nextDepartures(3);
+  const quote = priceQuote(cls.lines, pickupCents);
 
   return NextResponse.json({
-    estimate,
-    price,
+    needsReview: false,
+    source: cls.source,
+    lines: cls.lines, // pinned selection — client returns these at booking
+    quote, // full itemized breakdown (labels, volumes, cents)
     pickupKm,
     pickupResolved,
     pickupError,
-    departures: departures.map((d) => ({
-      id: d.id,
-      departsAt: d.departsAt.getTime(),
-      cutoffAt: d.cutoffAt.getTime(),
-      label: d.label,
-      port: d.port,
-      etaDouala: d.etaDouala.getTime(),
-    })),
+    departures,
   });
 }

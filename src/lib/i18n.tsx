@@ -52,6 +52,18 @@ const dict = {
     fr: "Impossible d'estimer pour le moment. Réessayez.",
     en: "Couldn't estimate right now. Please try again.",
   },
+  quote_items: { fr: "Articles reconnus", en: "Recognised items" },
+  quote_chargeable: { fr: "Volume facturable", en: "Chargeable volume" },
+  quote_freight: { fr: "Fret maritime · 750 €/m³", en: "Sea freight · €750/m³" },
+  quote_vehicles: { fr: "Véhicule(s)", en: "Vehicle(s)" },
+  quote_pickup_line: { fr: "Enlèvement à domicile", en: "Home pickup" },
+  quote_review_title: { fr: "Devis personnalisé", en: "Custom quote" },
+  quote_review_desc: {
+    fr: "Nous voulons vous donner le juste prix. Écrivez-nous ce que vous envoyez sur WhatsApp — on vous confirme le tarif rapidement.",
+    en: "We want to give you the right price. Tell us what you're shipping on WhatsApp — we'll confirm the rate quickly.",
+  },
+  quote_whatsapp: { fr: "Demander sur WhatsApp", en: "Ask on WhatsApp" },
+  quote_review_unmatched: { fr: "À préciser", en: "To clarify" },
 
   // ── Journey scene ──
   journey_title: {

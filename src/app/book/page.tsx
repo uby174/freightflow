@@ -34,7 +34,27 @@ interface Draft {
   receiverCity: string;
   neighborhood: string;
   landmark: string;
+  lines?: { catalogId: string; quantity: number }[];
 }
+
+interface QuoteLineView {
+  catalogId: string;
+  quantity: number;
+  labelFr: string;
+  labelEn: string;
+  volumeM3: number;
+  vehicleCents: number;
+}
+interface QuoteState {
+  goodsCents: number;
+  freightCents: number;
+  vehicleCents: number;
+  chargeableM3: number;
+  totalCents: number;
+  lines: QuoteLineView[];
+}
+
+const WHATSAPP = "33605775101";
 
 const EMPTY: Draft = {
   step: 1,
@@ -76,14 +96,8 @@ export default function BookPage() {
   const { locale } = useLocale();
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [loaded, setLoaded] = useState(false);
-  const [quote, setQuote] = useState<{
-    totalCents: number;
-    packagingCents: number;
-    shippingCents: number;
-    weightKg: number;
-    packagingLabelFr: string;
-    packagingLabelEn: string;
-  } | null>(null);
+  const [quote, setQuote] = useState<QuoteState | null>(null);
+  const [needsReview, setNeedsReview] = useState(false);
   const [departures, setDepartures] = useState<DepartureDto[]>([]);
   const [distanceState, setDistanceState] = useState<
     "idle" | "loading" | "too_far" | "not_found"
@@ -116,7 +130,7 @@ export default function BookPage() {
         : 0,
     [draft.mode, draft.pickupKm]
   );
-  const displayTotal = (quote?.packagingCents ?? 0) + (quote?.shippingCents ?? 0) + pickupCents;
+  const displayTotal = (quote?.goodsCents ?? 0) + pickupCents;
 
   async function refreshQuote(description: string) {
     const res = await fetch("/api/quote", {
@@ -126,22 +140,29 @@ export default function BookPage() {
     });
     if (!res.ok) return;
     const data = await res.json();
-    setQuote({
-      totalCents: data.price.totalCents,
-      packagingCents: data.price.packagingCents,
-      shippingCents: data.price.shippingCents,
-      weightKg: data.estimate.weightKg,
-      packagingLabelFr: data.price.packagingLabelFr,
-      packagingLabelEn: data.price.packagingLabelEn,
-    });
-    setDepartures(data.departures);
-    if (!draft.departureId && data.departures[0]) {
+    setDepartures(data.departures ?? []);
+    if (!draft.departureId && data.departures?.[0]) {
       set({ departureId: data.departures[0].id });
     }
+    if (data.needsReview) {
+      setNeedsReview(true);
+      setQuote(null);
+      return;
+    }
+    setNeedsReview(false);
+    setQuote({
+      goodsCents: data.quote.goodsCents,
+      freightCents: data.quote.freightCents,
+      vehicleCents: data.quote.vehicleCents,
+      chargeableM3: data.quote.chargeableM3,
+      totalCents: data.quote.totalCents,
+      lines: data.quote.lines,
+    });
+    set({ lines: data.lines });
   }
 
   useEffect(() => {
-    if (loaded && draft.description.trim().length >= 3 && !quote) {
+    if (loaded && draft.description.trim().length >= 2 && !quote && !needsReview) {
       refreshQuote(draft.description);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -182,6 +203,7 @@ export default function BookPage() {
           locale,
           mode: draft.mode,
           contents: draft.description,
+          lines: draft.lines ?? [],
           departureId: draft.departureId,
           sender: {
             name: draft.senderName,
@@ -222,7 +244,7 @@ export default function BookPage() {
   const canNext = () => {
     switch (draft.step) {
       case 1:
-        return draft.description.trim().length >= 3 && quote !== null;
+        return draft.description.trim().length >= 2 && quote !== null && !needsReview;
       case 2:
         return draft.mode === "dropoff" || draft.pickupKm !== undefined;
       case 3:
@@ -335,14 +357,15 @@ export default function BookPage() {
             <textarea
               value={draft.description}
               onChange={(e) => {
-                set({ description: e.target.value });
+                set({ description: e.target.value, lines: [] });
                 setQuote(null);
+                setNeedsReview(false);
               }}
               placeholder={t("quote_placeholder")}
               rows={4}
               className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm resize-none focus:border-primary transition-colors"
             />
-            {!quote && draft.description.trim().length >= 3 && (
+            {!quote && !needsReview && draft.description.trim().length >= 2 && (
               <button
                 onClick={() => refreshQuote(draft.description)}
                 className="rounded-xl bg-primary hover:bg-primary-dark text-white font-bold px-5 py-2.5 text-sm transition-colors"
@@ -350,23 +373,56 @@ export default function BookPage() {
                 {t("quote_button")}
               </button>
             )}
+            {needsReview && (
+              <div className="rounded-xl bg-white border border-border p-4 text-sm">
+                <p className="font-bold text-primary">{t("quote_review_title")}</p>
+                <p className="mt-1 text-muted">{t("quote_review_desc")}</p>
+                <a
+                  href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
+                    (locale === "fr"
+                      ? "Bonjour, je souhaite un devis pour : "
+                      : "Hello, I'd like a quote for: ") + draft.description
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-success text-white font-bold px-5 py-2.5"
+                >
+                  {t("quote_whatsapp")}
+                </a>
+              </div>
+            )}
             {quote && (
-              <div className="rounded-xl bg-white border border-border p-4 text-sm space-y-1.5">
-                <p className="flex justify-between">
-                  <span className="text-muted">{t("quote_estimated_weight")}</span>
-                  <span className="font-semibold">~{quote.weightKg} kg</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="text-muted">{t("quote_packaging")}</span>
-                  <span className="font-semibold">
-                    {locale === "fr" ? quote.packagingLabelFr : quote.packagingLabelEn} ·{" "}
-                    {euro(quote.packagingCents)}
-                  </span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="text-muted">{t("quote_shipping")}</span>
-                  <span className="font-semibold">{euro(quote.shippingCents)}</span>
-                </p>
+              <div className="rounded-xl bg-white border border-border p-4 text-sm space-y-2">
+                <ul className="space-y-1">
+                  {quote.lines.map((l) => (
+                    <li key={l.catalogId} className="flex justify-between gap-2">
+                      <span>
+                        {l.quantity} × {locale === "fr" ? l.labelFr : l.labelEn}
+                      </span>
+                      {l.vehicleCents > 0 ? (
+                        <span className="font-semibold">{euro(l.vehicleCents)}</span>
+                      ) : (
+                        <span className="text-muted">{l.volumeM3} m³</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                <div className="border-t border-border pt-2 space-y-1">
+                  {quote.freightCents > 0 && (
+                    <p className="flex justify-between">
+                      <span className="text-muted">
+                        {t("quote_freight")} ({quote.chargeableM3} m³)
+                      </span>
+                      <span className="font-semibold">{euro(quote.freightCents)}</span>
+                    </p>
+                  )}
+                  {quote.vehicleCents > 0 && (
+                    <p className="flex justify-between">
+                      <span className="text-muted">{t("quote_vehicles")}</span>
+                      <span className="font-semibold">{euro(quote.vehicleCents)}</span>
+                    </p>
+                  )}
+                </div>
                 <p className="text-xs text-muted pt-1">{t("quote_note")}</p>
               </div>
             )}
@@ -569,14 +625,20 @@ export default function BookPage() {
             <h2 className="font-bold text-base">{t("wiz_summary")}</h2>
             <p className="text-muted">{draft.description}</p>
             <div className="border-t border-border pt-2 space-y-1.5">
-              <p className="flex justify-between">
-                <span className="text-muted">{t("quote_packaging")}</span>
-                <span className="font-semibold">{euro(quote.packagingCents)}</span>
-              </p>
-              <p className="flex justify-between">
-                <span className="text-muted">{t("quote_shipping")}</span>
-                <span className="font-semibold">{euro(quote.shippingCents)}</span>
-              </p>
+              {quote.freightCents > 0 && (
+                <p className="flex justify-between">
+                  <span className="text-muted">
+                    {t("quote_freight")} ({quote.chargeableM3} m³)
+                  </span>
+                  <span className="font-semibold">{euro(quote.freightCents)}</span>
+                </p>
+              )}
+              {quote.vehicleCents > 0 && (
+                <p className="flex justify-between">
+                  <span className="text-muted">{t("quote_vehicles")}</span>
+                  <span className="font-semibold">{euro(quote.vehicleCents)}</span>
+                </p>
+              )}
               {draft.mode === "pickup" && (
                 <p className="flex justify-between">
                   <span className="text-muted">

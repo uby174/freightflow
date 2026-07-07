@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3010",
+    "dev": "next dev -p 3004",
     "build": "next build",
-    "start": "next start -p 3010",
-    "db:seed": "tsx src/db/seed.ts"
+    "start": "next start -p 3004",
+    "db:seed": "tsx src/db/seed.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
@@ -28,6 +29,7 @@
     "drizzle-kit": "^0.31.2",
     "tailwindcss": "^4.1.11",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.9"
   }
 }

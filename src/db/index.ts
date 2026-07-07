@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS orders (
   receiver_neighborhood TEXT,
   receiver_landmark TEXT,
   contents TEXT NOT NULL,
+  lines_json TEXT,
   departure_id INTEGER,
   packaging_cents INTEGER NOT NULL,
   shipping_cents INTEGER NOT NULL,
