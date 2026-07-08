@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { db, orders, parcels, carrierShipments } from "@/db";
 import { WeighInForm } from "@/components/WeighInForm";
+import { ApiKeyForm } from "@/components/ApiKeyForm";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,10 @@ export default function AdminPage() {
       <p className="text-sm text-muted mt-1">
         Pesée, réconciliation et mapping transporteur (interne uniquement).
       </p>
+
+      <div className="mt-6">
+        <ApiKeyForm />
+      </div>
 
       <div className="mt-6">
         <WeighInForm />

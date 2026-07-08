@@ -8,11 +8,11 @@
 import { z } from "zod";
 import {
   ANTHROPIC_MODEL,
-  hasAI,
   CLASSIFY_MIN_CONFIDENCE,
   MAX_LINE_QUANTITY,
   MAX_ORDER_M3,
 } from "./config";
+import { hasAI, getAnthropicKey } from "./secrets";
 import { CATALOG, CATALOG_IDS } from "./catalog/catalog";
 import { matchDescription, normalize, type MatchLine } from "./catalog/match";
 import { priceQuote } from "./pricing";
@@ -80,7 +80,7 @@ function gate(
 async function aiClassify(description: string): Promise<ClassifyResult | null> {
   try {
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic();
+    const client = new Anthropic({ apiKey: getAnthropicKey() });
     const catalogList = CATALOG.map(
       (c) => `${c.id}: ${c.labelFr} / ${c.labelEn}`
     ).join("\n");

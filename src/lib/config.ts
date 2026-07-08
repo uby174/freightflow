@@ -59,4 +59,5 @@ export const DEMO_FAST = (process.env.SN_DEMO_SPEED ?? "fast") === "fast";
 export const DEMO_EVENT_GAP_MS = DEMO_FAST ? 40_000 : 2 * 24 * 3600_000;
 
 export const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
-export const hasAI = () => Boolean(process.env.ANTHROPIC_API_KEY);
+// NOTE: `hasAI` / key access live in the server-only module `@/lib/secrets`
+// (config.ts is imported by client components and must stay free of `fs`).

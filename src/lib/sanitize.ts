@@ -1,5 +1,6 @@
 import { db, forbiddenTerms } from "@/db";
-import { ANTHROPIC_MODEL, hasAI } from "./config";
+import { ANTHROPIC_MODEL } from "./config";
+import { hasAI, getAnthropicKey } from "./secrets";
 import type { MilestoneKey } from "./carrier/types";
 
 // ── Layer 4 fail-safe: static branded templates per milestone ──
@@ -75,7 +76,7 @@ async function aiRewrite(
 ): Promise<{ fr: string; en: string } | null> {
   try {
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic();
+    const client = new Anthropic({ apiKey: getAnthropicKey() });
     const res = await client.messages.create({
       model: ANTHROPIC_MODEL,
       max_tokens: 300,

@@ -2,7 +2,8 @@
 // our real data. Any price it states comes from the deterministic engine (a
 // tool call with the AI, or direct computation offline) — never invented.
 
-import { ANTHROPIC_MODEL, hasAI } from "./config";
+import { ANTHROPIC_MODEL } from "./config";
+import { hasAI, getAnthropicKey } from "./secrets";
 import { CATALOG } from "./catalog/catalog";
 import { matchDescription, normalize } from "./catalog/match";
 import { priceQuote, type QuoteItem } from "./pricing";
@@ -223,7 +224,7 @@ async function assistAI(
 ): Promise<{ answer: string } | null> {
   try {
     const { default: Anthropic } = await import("@anthropic-ai/sdk");
-    const client = new Anthropic();
+    const client = new Anthropic({ apiKey: getAnthropicKey() });
     const system = buildSystemPrompt(locale);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const messages: any[] = [{ role: "user", content: message.slice(0, 1000) }];
