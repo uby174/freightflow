@@ -5,9 +5,9 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "SN Groupage Solutions — Colis & marchandises France → Cameroun",
+  title: "SN Groupage Solutions — Colis & marchandises Alsace → Cameroun",
   description:
-    "SN Groupage Solutions : transport de colis et marchandises de Bischwiller (France) vers Douala (Akwa). Voitures, meubles, électroménagers, cartons — estimation instantanée et suivi WhatsApp.",
+    "SN Groupage Solutions : transport de colis et marchandises d'Alsace (France) vers le Cameroun (Douala–Yaoundé). Voitures, meubles, électroménagers, cartons — estimation instantanée et suivi WhatsApp.",
 };
 
 export default function RootLayout({

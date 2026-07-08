@@ -92,7 +92,9 @@ export default function Landing() {
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-medium">
                 <Ship className="w-4 h-4 text-accent" aria-hidden />
-                Bischwiller → Douala (Akwa)
+                {locale === "fr"
+                  ? "Alsace → Cameroun (Douala–Yaoundé)"
+                  : "Alsace → Cameroon (Douala–Yaoundé)"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-medium">
                 <Car className="w-4 h-4 text-primary" aria-hidden />
@@ -249,9 +251,9 @@ export default function Landing() {
             },
             {
               qFr: "Qui livre au Cameroun ?",
-              aFr: "SN Groupage Solutions gère votre envoi de bout en bout, avec notre agent local à Douala (Akwa). Un seul interlocuteur : nous.",
+              aFr: "SN Groupage Solutions gère votre envoi de bout en bout, avec nos agents locaux à Douala et Yaoundé. Un seul interlocuteur : nous.",
               qEn: "Who delivers in Cameroon?",
-              aEn: "SN Groupage Solutions handles your shipment end to end, with our local agent in Douala (Akwa). One single point of contact: us.",
+              aEn: "SN Groupage Solutions handles your shipment end to end, with our local agents in Douala and Yaoundé. One single point of contact: us.",
             },
           ].map((f) => (
             <details

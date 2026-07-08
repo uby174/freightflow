@@ -25,12 +25,12 @@ const dict = {
   next_departure_label: { fr: "Prochain départ", en: "Next departure" },
   next_departure_soon: { fr: "Bientôt annoncé", en: "Announced soon" },
   hero_title: {
-    fr: "Bischwiller → Douala : vos colis et marchandises en toute confiance",
-    en: "Bischwiller → Douala: your parcels & goods, in full confidence",
+    fr: "Alsace → Cameroun : vos colis et marchandises en toute confiance",
+    en: "Alsace → Cameroon: your parcels & goods, in full confidence",
   },
   hero_sub: {
-    fr: "Du carton à la voiture — décrivez ce que vous envoyez, notre assistant estime le conditionnement et le prix en quelques secondes. Groupage régulier vers Douala (Akwa).",
-    en: "From a box to a car — describe what you're sending and our assistant estimates conditioning and price in seconds. Regular groupage to Douala (Akwa).",
+    fr: "Du carton à la voiture — décrivez ce que vous envoyez, notre assistant estime le conditionnement et le prix en quelques secondes. Groupage régulier vers le Cameroun : Douala et Yaoundé.",
+    en: "From a box to a car — describe what you're sending and our assistant estimates conditioning and price in seconds. Regular groupage to Cameroon: Douala and Yaoundé.",
   },
   quote_placeholder: {
     fr: "Ex. : 1 réfrigérateur, 3 cartons de vêtements, 1 TV et une moto…",
@@ -232,15 +232,15 @@ const dict = {
     fr: "À notre terminal de Bischwiller, ou enlèvement chez vous (5 € + 0,19 €/km).",
     en: "At our Bischwiller terminal, or home pickup (€5 + €0.19/km).",
   },
-  how_3_t: { fr: "3. Suivez jusqu'à Douala", en: "3. Track all the way to Douala" },
+  how_3_t: { fr: "3. Suivez jusqu'à destination", en: "3. Track all the way there" },
   how_3_d: {
     fr: "Un numéro de suivi SN unique et des nouvelles claires à chaque étape, sur WhatsApp.",
     en: "One SN tracking number and clear updates at every step, on WhatsApp.",
   },
   cal_title: { fr: "Prochains départs", en: "Next departures" },
   cal_sub: {
-    fr: "Conteneurs groupés au départ du Havre, vers Douala (Akwa).",
-    en: "Consolidated containers from Le Havre, to Douala (Akwa).",
+    fr: "Conteneurs groupés au départ du Havre, vers le Cameroun (Douala–Yaoundé).",
+    en: "Consolidated containers from Le Havre, to Cameroon (Douala–Yaoundé).",
   },
   trust_title: { fr: "Ils nous font confiance", en: "They trust us" },
   faq_title: { fr: "Questions fréquentes", en: "Frequently asked questions" },

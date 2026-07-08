@@ -81,7 +81,7 @@ async function aiRewrite(
       model: ANTHROPIC_MODEL,
       max_tokens: 300,
       system:
-        "You write shipment status updates for SN Groupage Solutions, a friendly Bischwiller (France) → Douala (Cameroon) shipping company. " +
+        "You write shipment status updates for SN Groupage Solutions, a friendly Alsace (France) → Cameroon (Douala–Yaoundé) shipping company. " +
         "Rewrite the raw logistics event into ONE warm, reassuring customer sentence, in French AND English. " +
         "NEVER mention any company, carrier, vessel, agent or courier name, or any reference/booking number — " +
         "use generic terms (notre terminal, le navire, notre agent local, notre livreur). " +

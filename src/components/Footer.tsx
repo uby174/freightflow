@@ -32,8 +32,8 @@ export function Footer() {
             Terminal SN Groupage
             <br />
           </p>
-          <p className="text-blue-200 pl-6">67240 Bischwiller, France</p>
-          <p className="text-blue-200 pl-6 mt-1">→ Douala (Akwa), Cameroun</p>
+          <p className="text-blue-200 pl-6">67240 Bischwiller (Alsace), France</p>
+          <p className="text-blue-200 pl-6 mt-1">→ Cameroun : Douala &amp; Yaoundé</p>
         </div>
         <div>
           <p className="font-bold mb-2 text-gold">Info &amp; Réservation</p>

@@ -15,7 +15,7 @@ const MESSAGES: Array<{
 }> = [
   {
     name: "Marie N.",
-    route: "Bischwiller → Douala",
+    route: "Strasbourg → Douala",
     color: "#c1533f",
     time: "09:24",
     fr: "Mon réfrigérateur et mes cartons sont arrivés intacts 🙏 Les messages à chaque étape m'ont vraiment rassurée. Merci !",
@@ -23,7 +23,7 @@ const MESSAGES: Array<{
   },
   {
     name: "Serge T.",
-    route: "Haguenau → Douala",
+    route: "Colmar → Yaoundé",
     color: "#1f7aec",
     time: "14:02",
     fr: "J'ai envoyé une moto et deux palettes. L'enlèvement à domicile m'a évité toute la logistique. Prix annoncé = prix payé 👌",
@@ -31,7 +31,7 @@ const MESSAGES: Array<{
   },
   {
     name: "Aïcha B.",
-    route: "Strasbourg → Douala",
+    route: "Mulhouse → Douala",
     color: "#8a4fbf",
     time: "hier",
     fr: "Ma mère a reçu le colis à Akwa 😍 Elle a pu suivre la livraison en direct, incroyable. Je recommande à toute la diaspora.",

@@ -107,13 +107,13 @@ const FAQ: Array<{ re: RegExp; fr: string; en: string }> = [
   },
   {
     re: /(d[ée]part|calendrier|prochain|next|schedule|conteneur|quand)/i,
-    fr: "Nos conteneurs partent régulièrement du Havre vers Douala (Akwa). Le calendrier des prochains départs est affiché sur la page d'accueil.",
-    en: "Our containers leave Le Havre for Douala (Akwa) on a regular schedule. The next departures are shown on the home page.",
+    fr: "Nos conteneurs partent régulièrement du Havre vers le Cameroun (Douala–Yaoundé). Le calendrier des prochains départs est affiché sur la page d'accueil.",
+    en: "Our containers leave Le Havre for Cameroon (Douala–Yaoundé) on a regular schedule. The next departures are shown on the home page.",
   },
   {
     re: /(destination|o[uù]|where|ville|city|livr|cameroun|douala|yaound)/i,
-    fr: "Nous expédions de Bischwiller (France) vers Douala (Akwa) et les grandes villes du Cameroun.",
-    en: "We ship from Bischwiller (France) to Douala (Akwa) and major cities across Cameroon.",
+    fr: "Nous expédions d'Alsace (France) vers le Cameroun : Douala, Yaoundé et les grandes villes du pays. Notre terminal est à Bischwiller (67240).",
+    en: "We ship from Alsace (France) to Cameroon: Douala, Yaoundé and major cities across the country. Our terminal is in Bischwiller (67240).",
   },
 ];
 
@@ -144,8 +144,9 @@ function buildSystemPrompt(locale: "fr" | "en"): string {
     (c) => `${c.id} | ${c.labelFr} / ${c.labelEn} | ≈ ${(unitPriceCents(c.id) / 100).toFixed(0)}€`
   ).join("\n");
   return (
-    "You are the assistant for SN Groupage Solutions, a Bischwiller (France) → Douala (Cameroon) " +
-    "sea-freight groupage service for the Cameroonian diaspora. Be warm, concise and helpful. " +
+    "You are the assistant for SN Groupage Solutions, an Alsace (France) → Cameroon (Douala–Yaoundé) " +
+    "sea-freight groupage service for the Cameroonian diaspora. The terminal is in Bischwiller (Alsace). " +
+    "Be warm, concise and helpful. " +
     `Answer in ${locale === "fr" ? "French" : "English"}.\n\n` +
     "FACTS: Sea groupage 750 €/m³ with the 200 kg = 1 m³ rule (charge the greater of volume and weight). " +
     "Vehicles are flat-rated. Minimum 45 €. Pickup 5 € + 0,19 €/km from Bischwiller, or free drop-off. " +
