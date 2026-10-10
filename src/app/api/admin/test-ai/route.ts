@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ANTHROPIC_MODEL } from "@/lib/config";
-import { getAnthropicKey, checkAdminToken } from "@/lib/secrets";
+import { getAnthropicKey, checkAdminToken, aiDisabled } from "@/lib/secrets";
 
 // Verifies the stored key actually works, without exposing it. Makes one tiny
 // Anthropic call and reports ok / a sanitized error.
@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
   if (!checkAdminToken(req.headers.get("x-admin-token"))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  if (aiDisabled()) return NextResponse.json({ ok: false, error: "ai_disabled" });
   const key = getAnthropicKey();
   if (!key) return NextResponse.json({ ok: false, error: "no_key" });
 

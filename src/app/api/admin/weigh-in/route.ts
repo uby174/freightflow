@@ -11,6 +11,7 @@ import {
   MIN_FREIGHT_CENTS,
 } from "@/lib/config";
 import type { MatchLine } from "@/lib/catalog/match";
+import { checkAdminToken } from "@/lib/secrets";
 
 const bodySchema = z.object({
   code: z.string().min(5),
@@ -21,8 +22,11 @@ const bodySchema = z.object({
 // is the separate, disclosed reconciliation layer. The catalog gives an honest
 // volumetric estimate; the terminal scale is ground truth. If actual weight
 // pushes the volumetric charge (weight/200) past the quoted figure by >15%, we
-// version a new quote and notify — never a silent reprice.
+// version a new quote for staff to notify the customer — never a silent reprice.
 export async function POST(req: NextRequest) {
+  if (!checkAdminToken(req.headers.get("x-admin-token"))) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid_input" }, { status: 400 });

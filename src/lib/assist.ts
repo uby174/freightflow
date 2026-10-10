@@ -8,6 +8,7 @@ import { tenantVars, interpolate } from "@/tenant";
 import { CATALOG } from "./catalog/catalog";
 import { matchDescription, normalize } from "./catalog/match";
 import { priceQuote, type QuoteItem } from "./pricing";
+import { coerceQuoteItems } from "./catalog/items";
 
 export interface Suggestion {
   catalogId: string;
@@ -218,7 +219,8 @@ function toQuoteItems(raw: any): QuoteItem[] {
       out.push({ catalogId: String(it.catalog_id), quantity: q });
     }
   }
-  return out;
+  // Same validator as POST /api/orders: unknown ids and out-of-bounds boxes are dropped
+  return coerceQuoteItems(out);
 }
 
 async function assistAI(

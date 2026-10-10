@@ -54,6 +54,9 @@ export const TEMPLATES: Record<MilestoneKey, { fr: string; en: string }> = Objec
 export function scrub(text: string): string {
   const terms = db.select().from(forbiddenTerms).all();
   let out = text;
+  // Container numbers & carrier refs first, before deny-list terms can split them
+  out = out.replace(/[A-Z]{4}\d{7}/g, "notre conteneur");
+  out = out.replace(/(?:ref|booking)\s+[A-Z0-9-]{4,}/gi, "");
   // Longest terms first so "TransGlobal Express" wins over "TGE"
   for (const t of [...terms].sort((a, b) => b.term.length - a.term.length)) {
     out = out.replace(
