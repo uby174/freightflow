@@ -12,7 +12,7 @@ test("tracking: an API-created order shows its code and milestones", async ({ pa
       receiver: { name: "Dest", phone: "+237677889900", city: "Douala" },
     },
   });
-  expect(res.ok()).toBeTruthy();
+  expect(res.status()).toBe(200);
   const { code } = await res.json();
   expect(code).toMatch(/^[A-Z]{2}-\d{4}-\d{6}$/);
 

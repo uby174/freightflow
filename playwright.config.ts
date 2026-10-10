@@ -4,9 +4,10 @@ export default defineConfig({
   testDir: "e2e",
   retries: 1,
   forbidOnly: !!process.env.CI,
-  // `next dev` compiles routes on first hit, so the first test per route is slow.
-  timeout: 60_000,
-  expect: { timeout: 15_000 },
+  // `next dev` compiles each route on first hit (and again after ~60s idle):
+  // 7-16s per route on a laptop, so budgets are generous.
+  timeout: 90_000,
+  expect: { timeout: 30_000 },
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: "http://localhost:3004",

@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 test("admin settings: status never leaks a full API key", async ({ request }) => {
   const res = await request.get("/api/admin/settings");
-  expect(res.ok()).toBeTruthy();
+  expect(res.status()).toBe(200);
   const body = await res.json();
   expect(typeof body.configured).toBe("boolean");
   expect(JSON.stringify(body)).not.toContain("sk-ant-api");
