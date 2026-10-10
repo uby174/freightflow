@@ -42,3 +42,16 @@ Out of W1: real carrier API, Twilio/Resend live transports, legal pages (W3, reu
 `agency` compliance templates), per-lane SEO pages (W3), booking across multiple lanes
 (W1 books on `lanes[0]`; `/tarifs` lists all), folder rename `camfret → freightflow`
 (done last, with the GitHub push).
+
+## Status (2026-10-10, end of W1)
+
+| Step | Result |
+|---|---|
+| 1 Tenant layer | Done — SN `:3004` + Dakar `:3005` render from config; per-tenant `distDir` fixed a hydration mismatch |
+| 2 Rate card + services | Done — `/tarifs` unit prices match the engine rule; `/services` |
+| 3 Stripe test checkout | Done — optional; verified `available:false` path; live test needs `STRIPE_SECRET_KEY` |
+| 4 Guardrail evals + doc | Done — `guardrails.test.ts` (72 tests), `docs/AI-GUARDRAILS.md`; vitest 95/95 |
+| 5 Playwright e2e + CI | Done — 8 specs green ×3 locally; `ci.yml` not yet exercised on GitHub |
+| 6 README + screenshots | Done — `docs/screenshots/` both tenants, rates, services |
+
+Open: push to GitHub as `freightflow` (rename folder then), run CI once, set `OWNER` in README badge.
