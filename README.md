@@ -2,7 +2,7 @@
 
 **A white-label, AI-assisted shipping platform for country-to-country freight companies — with hallucination-proof pricing.**
 
-[![CI](https://github.com/OWNER/freightflow/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/freightflow/actions/workflows/ci.yml)
+[![CI](https://github.com/uby174/freightflow/actions/workflows/ci.yml/badge.svg)](https://github.com/uby174/freightflow/actions/workflows/ci.yml)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-black) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue) ![Tests](https://img.shields.io/badge/tests-vitest%20%2B%20playwright-green)
 
 One codebase, one config file per client. The demo ships two tenants from the same build:
