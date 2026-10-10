@@ -13,6 +13,7 @@ const SECRETS_PATH = path.join(process.cwd(), ".secrets.json");
 
 interface SecretsFile {
   anthropicApiKey?: string;
+  stripeSecretKey?: string;
 }
 
 function readFile(): SecretsFile {
@@ -111,4 +112,12 @@ export function checkAdminToken(provided: string | null): boolean {
   const expected = process.env.SN_ADMIN_TOKEN?.trim();
   if (!expected) return true; // no token configured → allowed (local dev)
   return provided?.trim() === expected;
+}
+
+/** Stripe secret (test mode for the demo). Env wins, then the local secrets file. */
+export function getStripeKey(): string | undefined {
+  const env = process.env.STRIPE_SECRET_KEY?.trim();
+  if (env) return env;
+  const file = readFile().stripeSecretKey?.trim();
+  return file || undefined;
 }

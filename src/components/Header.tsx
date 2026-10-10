@@ -17,6 +17,12 @@ export function Header() {
           <Logo />
         </Link>
         <nav className="flex items-center gap-2 sm:gap-3 text-sm font-medium">
+          <Link href="/services" className="hidden md:flex text-foreground hover:text-accent transition-colors">
+            {locale === "fr" ? "Services" : "Services"}
+          </Link>
+          <Link href="/tarifs" className="hidden md:flex text-foreground hover:text-accent transition-colors">
+            {locale === "fr" ? "Tarifs" : "Rates"}
+          </Link>
           <Link
             href="/track"
             className="hidden sm:flex items-center gap-1.5 text-foreground hover:text-accent transition-colors"

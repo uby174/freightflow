@@ -9,7 +9,8 @@ import {
   useReducedMotion,
   motion,
 } from "motion/react";
-import { useT } from "@/lib/i18n";
+import { useT, useLocale } from "@/lib/i18n";
+import { getTenant, tenantVars } from "@/tenant";
 
 // ── Scene geometry (viewBox 900×500) ─────────────────────────────────────
 const ROUTE_D = "M 140 160 C 300 230, 560 330, 770 385";
@@ -66,6 +67,9 @@ function wait(ms: number) {
 
 export function HeroScene() {
   const t = useT();
+  const { locale } = useLocale();
+  const C = getTenant().colors;
+  const V = tenantVars(locale);
   const reduce = useReducedMotion();
   const [scope, animateScope] = useAnimate();
   const pathRef = useRef<SVGPathElement>(null);
@@ -270,7 +274,7 @@ export function HeroScene() {
         ref={pathRef}
         d={ROUTE_D}
         fill="none"
-        stroke="#f4b81e"
+        stroke={C.gold}
         strokeWidth="3.5"
         strokeLinecap="round"
         initial={{ pathLength: reduce ? 1 : 0 }}
@@ -279,29 +283,29 @@ export function HeroScene() {
 
       {/* Le Havre pin */}
       <motion.g className="pin" initial={{ opacity: reduce ? 1 : 0, y: reduce ? 0 : -8 }}>
-        <circle cx={SHIP_START.x} cy={SHIP_START.y} r="7" fill="#16234d" />
-        <circle cx={SHIP_START.x} cy={SHIP_START.y} r="3" fill="#f4b81e" />
+        <circle cx={SHIP_START.x} cy={SHIP_START.y} r="7" fill={C.primary} />
+        <circle cx={SHIP_START.x} cy={SHIP_START.y} r="3" fill={C.gold} />
         <g transform={`translate(${SHIP_START.x - 58}, ${SHIP_START.y - 46})`}>
           <rect width="8" height="12" fill="#1e3a8a" />
           <rect x="8" width="8" height="12" fill="#ffffff" stroke="#d7deea" strokeWidth="0.5" />
-          <rect x="16" width="8" height="12" fill="#d21f28" />
-          <text x="30" y="10" fontSize="14" fontWeight="700" fill="#16234d">
-            Le Havre
+          <rect x="16" width="8" height="12" fill={C.accent} />
+          <text x="30" y="10" fontSize="14" fontWeight="700" fill={C.primary}>
+            {V.port}
           </text>
         </g>
       </motion.g>
 
       {/* Douala pin */}
       <motion.g className="pin" initial={{ opacity: reduce ? 1 : 0, y: reduce ? 0 : -8 }}>
-        <circle cx={DOUALA.x} cy={DOUALA.y} r="7" fill="#16234d" />
-        <circle cx={DOUALA.x} cy={DOUALA.y} r="3" fill="#f4b81e" />
+        <circle cx={DOUALA.x} cy={DOUALA.y} r="7" fill={C.primary} />
+        <circle cx={DOUALA.x} cy={DOUALA.y} r="3" fill={C.gold} />
         <g transform={`translate(${DOUALA.x - 20}, ${DOUALA.y + 18})`}>
           <rect width="8" height="12" fill="#0f7a37" />
-          <rect x="8" width="8" height="12" fill="#d21f28" />
-          <rect x="16" width="8" height="12" fill="#f4b81e" />
-          <circle cx="12" cy="6" r="2" fill="#f4b81e" />
-          <text x="30" y="10" fontSize="14" fontWeight="700" fill="#16234d">
-            Douala (Akwa)
+          <rect x="8" width="8" height="12" fill={C.accent} />
+          <rect x="16" width="8" height="12" fill={C.gold} />
+          <circle cx="12" cy="6" r="2" fill={C.gold} />
+          <text x="30" y="10" fontSize="14" fontWeight="700" fill={C.primary}>
+            {V.primaryCity}
           </text>
         </g>
         <circle
@@ -310,7 +314,7 @@ export function HeroScene() {
           cy={DOUALA.y}
           r="16"
           fill="none"
-          stroke="#f4b81e"
+          stroke={C.gold}
           strokeWidth="3"
           opacity="0"
         />
@@ -338,16 +342,16 @@ export function HeroScene() {
           scale: 0.4,
         }}
       >
-        <polygon points="-46,-14 46,-14 56,-26 -36,-26" fill="#24377a" />
-        <polygon points="46,-14 56,-26 56,10 46,22" fill="#0e1833" />
-        <rect x="-46" y="-14" width="92" height="36" rx="2" fill="#16234d" />
+        <polygon points="-46,-14 46,-14 56,-26 -36,-26" fill={C.secondary} />
+        <polygon points="46,-14 56,-26 56,10 46,22" fill={C.primaryDark} />
+        <rect x="-46" y="-14" width="92" height="36" rx="2" fill={C.primary} />
         {[-32, -18, -4, 10, 24].map((x) => (
-          <line key={x} x1={x} y1="-12" x2={x} y2="20" stroke="#24377a" strokeWidth="2" />
+          <line key={x} x1={x} y1="-12" x2={x} y2="20" stroke={C.secondary} strokeWidth="2" />
         ))}
         <g id="stamp" opacity="0">
-          <rect x="-28" y="-6" width="56" height="16" rx="3" fill="#f4b81e" />
-          <text x="0" y="6" textAnchor="middle" fontSize="10" fontWeight="900" fill="#16234d">
-            SN GROUPAGE
+          <rect x="-28" y="-6" width="56" height="16" rx="3" fill={C.gold} />
+          <text x="0" y="6" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primary}>
+            {V.short} GROUPAGE
           </text>
         </g>
       </motion.g>
@@ -362,15 +366,15 @@ export function HeroScene() {
           <line x1="-72" y1="16" x2="-52" y2="16" stroke="#bcd4ee" strokeWidth="3" strokeLinecap="round" />
           <line x1="-64" y1="22" x2="-48" y2="22" stroke="#bcd4ee" strokeWidth="2.5" strokeLinecap="round" />
         </g>
-        <path d="M -46 6 L 46 6 L 34 24 L -38 24 Z" fill="#16234d" />
-        <rect x="-46" y="2" width="92" height="5" fill="#d21f28" />
+        <path d="M -46 6 L 46 6 L 34 24 L -38 24 Z" fill={C.primary} />
+        <rect x="-46" y="2" width="92" height="5" fill={C.accent} />
         <rect x="20" y="-16" width="16" height="18" rx="1.5" fill="#e9eef6" />
-        <rect x="23" y="-12" width="4" height="4" fill="#16234d" />
-        <rect x="29" y="-12" width="4" height="4" fill="#16234d" />
+        <rect x="23" y="-12" width="4" height="4" fill={C.primary} />
+        <rect x="29" y="-12" width="4" height="4" fill={C.primary} />
         <g id="shipbox" opacity={reduce ? 1 : 0}>
-          <rect x="-34" y="-12" width="44" height="15" rx="1.5" fill="#d21f28" />
-          <text x="-12" y="-1" textAnchor="middle" fontSize="9" fontWeight="900" fill="#f4b81e">
-            SN
+          <rect x="-34" y="-12" width="44" height="15" rx="1.5" fill={C.accent} />
+          <text x="-12" y="-1" textAnchor="middle" fontSize="9" fontWeight="900" fill={C.gold}>
+            {V.short}
           </text>
         </g>
       </motion.g>
@@ -380,19 +384,19 @@ export function HeroScene() {
         id="delivered"
         initial={{ x: DOUALA.x - 60, y: DOUALA.y - 40 + (reduce ? 0 : -26), opacity: 0 }}
       >
-        <rect x="-28" y="-11" width="56" height="24" rx="2" fill="#16234d" />
+        <rect x="-28" y="-11" width="56" height="24" rx="2" fill={C.primary} />
         {[-18, -6, 6, 18].map((x) => (
-          <line key={x} x1={x} y1="-9" x2={x} y2="11" stroke="#24377a" strokeWidth="1.5" />
+          <line key={x} x1={x} y1="-9" x2={x} y2="11" stroke={C.secondary} strokeWidth="1.5" />
         ))}
-        <rect x="-18" y="-5" width="36" height="11" rx="2" fill="#f4b81e" />
-        <text x="0" y="3.5" textAnchor="middle" fontSize="7.5" fontWeight="900" fill="#16234d">
-          SN GROUPAGE
+        <rect x="-18" y="-5" width="36" height="11" rx="2" fill={C.gold} />
+        <text x="0" y="3.5" textAnchor="middle" fontSize="7.5" fontWeight="900" fill={C.primary}>
+          {V.short} GROUPAGE
         </text>
       </motion.g>
 
       {/* Closing caption */}
       <motion.g id="caption" initial={{ opacity: reduce ? 1 : 0, y: reduce ? 0 : 10 }}>
-        <text x="450" y="470" textAnchor="middle" fontSize="17" fontWeight="700" fill="#16234d">
+        <text x="450" y="470" textAnchor="middle" fontSize="17" fontWeight="700" fill={C.primary}>
           {t("journey_caption")}
         </text>
       </motion.g>

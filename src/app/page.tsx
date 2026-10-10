@@ -7,6 +7,7 @@ import { HeroScene } from "@/components/motion/HeroScene";
 import { Reveal, StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
 import { WhatsAppTestimonials } from "@/components/motion/WhatsAppTestimonials";
 import { useLocale, useT, type DictKey } from "@/lib/i18n";
+import { tenantVars, interpolate } from "@/tenant";
 import {
   PencilLine,
   Truck,
@@ -56,6 +57,7 @@ function NextDeparturePulse() {
 export default function Landing() {
   const t = useT();
   const { locale } = useLocale();
+  const V = tenantVars(locale);
   const departures = useDepartures();
 
   const fmt = (ts: number) =>
@@ -92,9 +94,7 @@ export default function Landing() {
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-medium">
                 <Ship className="w-4 h-4 text-accent" aria-hidden />
-                {locale === "fr"
-                  ? "Alsace → Cameroun (Douala–Yaoundé)"
-                  : "Alsace → Cameroon (Douala–Yaoundé)"}
+                {V.origin} → {V.destCountry} ({V.destCitiesDash})
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white border border-border px-3 py-1.5 font-medium">
                 <Car className="w-4 h-4 text-primary" aria-hidden />
@@ -239,9 +239,9 @@ export default function Landing() {
             },
             {
               qFr: "Combien de temps dure le transport ?",
-              aFr: "Par groupage maritime, comptez 4 à 8 semaines porte à porte selon la date de départ du conteneur et le dédouanement à Douala.",
+              aFr: "Par groupage maritime, comptez {transitMin} à {transitMax} semaines porte à porte selon la date de départ du conteneur et le dédouanement à {primaryCity}.",
               qEn: "How long does shipping take?",
-              aEn: "By sea groupage, allow 4–8 weeks door to door depending on the container departure date and customs clearance in Douala.",
+              aEn: "By sea groupage, allow {transitMin}–{transitMax} weeks door to door depending on the container departure date and customs clearance in {primaryCity}.",
             },
             {
               qFr: "Comment est calculé le prix ?",
@@ -251,9 +251,9 @@ export default function Landing() {
             },
             {
               qFr: "Qui livre au Cameroun ?",
-              aFr: "SN Groupage Solutions gère votre envoi de bout en bout, avec nos agents locaux à Douala et Yaoundé. Un seul interlocuteur : nous.",
+              aFr: "SN Groupage Solutions gère votre envoi de bout en bout, avec nos agents locaux à {destCities}. Un seul interlocuteur : nous.",
               qEn: "Who delivers in Cameroon?",
-              aEn: "SN Groupage Solutions handles your shipment end to end, with our local agents in Douala and Yaoundé. One single point of contact: us.",
+              aEn: "SN Groupage Solutions handles your shipment end to end, with our local agents in {destCities}. One single point of contact: us.",
             },
           ].map((f) => (
             <details
@@ -267,7 +267,7 @@ export default function Landing() {
                 </span>
               </summary>
               <p className="mt-2 text-sm text-muted">
-                {locale === "fr" ? f.aFr : f.aEn}
+                {interpolate(locale === "fr" ? f.aFr : f.aEn, V)}
               </p>
             </details>
           ))}

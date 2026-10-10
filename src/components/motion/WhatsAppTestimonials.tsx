@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "motion/react";
 import type { Locale } from "@/lib/i18n";
+import { bookingLane, tenantVars, interpolate } from "@/tenant";
 
 // Diaspora trust is built peer-to-peer on WhatsApp already — mirroring that
 // exact visual language makes testimonials read as real word-of-mouth.
@@ -15,7 +16,7 @@ const MESSAGES: Array<{
 }> = [
   {
     name: "Marie N.",
-    route: "Strasbourg → Douala",
+    route: "{origin} → {primaryCity}",
     color: "#c1533f",
     time: "09:24",
     fr: "Mon réfrigérateur et mes cartons sont arrivés intacts 🙏 Les messages à chaque étape m'ont vraiment rassurée. Merci !",
@@ -23,7 +24,7 @@ const MESSAGES: Array<{
   },
   {
     name: "Serge T.",
-    route: "Colmar → Yaoundé",
+    route: "{origin} → {secondCity}",
     color: "#1f7aec",
     time: "14:02",
     fr: "J'ai envoyé une moto et deux palettes. L'enlèvement à domicile m'a évité toute la logistique. Prix annoncé = prix payé 👌",
@@ -31,11 +32,11 @@ const MESSAGES: Array<{
   },
   {
     name: "Aïcha B.",
-    route: "Mulhouse → Douala",
+    route: "{origin} → {primaryCity}",
     color: "#8a4fbf",
     time: "hier",
-    fr: "Ma mère a reçu le colis à Akwa 😍 Elle a pu suivre la livraison en direct, incroyable. Je recommande à toute la diaspora.",
-    en: "My mother received the parcel in Akwa 😍 She could follow the delivery live — incredible. I recommend it to the whole diaspora.",
+    fr: "Ma mère a reçu le colis à {primaryCity} 😍 Elle a pu suivre la livraison en direct, incroyable. Je recommande à toute la diaspora.",
+    en: "My mother received the parcel in {primaryCity} 😍 She could follow the delivery live — incredible. I recommend it to the whole diaspora.",
   },
 ];
 
@@ -77,6 +78,8 @@ function ReadTicks({ animate }: { animate: boolean }) {
 
 export function WhatsAppTestimonials({ locale }: { locale: Locale }) {
   const reduce = useReducedMotion();
+  const lane = bookingLane();
+  const V: Record<string, string> = { ...tenantVars(locale), secondCity: lane.destCities[1] ?? lane.destCities[0] };
   return (
     <div className="mx-auto mt-8 max-w-md rounded-3xl overflow-hidden border border-border shadow-lg shadow-blue-900/5">
       {/* WhatsApp-style header */}
@@ -89,7 +92,7 @@ export function WhatsAppTestimonials({ locale }: { locale: Locale }) {
             {locale === "fr" ? "Avis de nos clients" : "Our customers"}
           </p>
           <p className="text-[11px] text-white/80">
-            {locale === "fr" ? "diaspora camerounaise" : "Cameroonian diaspora"}
+            {locale === "fr" ? `diaspora · ${V.destCountry}` : `${V.destCountry} diaspora`}
           </p>
         </div>
       </div>
@@ -129,10 +132,10 @@ export function WhatsAppTestimonials({ locale }: { locale: Locale }) {
               />
               <p className="text-[13px] font-bold" style={{ color: m.color }}>
                 {m.name}
-                <span className="font-normal text-[#667781]"> · {m.route}</span>
+                <span className="font-normal text-[#667781]"> · {interpolate(m.route, V)}</span>
               </p>
               <p className="mt-0.5 text-[13.5px] leading-snug text-[#111b21]">
-                {locale === "fr" ? m.fr : m.en}
+                {interpolate(locale === "fr" ? m.fr : m.en, V)}
               </p>
               <p className="mt-0.5 text-right text-[10.5px] text-[#667781] leading-none">
                 {m.time}

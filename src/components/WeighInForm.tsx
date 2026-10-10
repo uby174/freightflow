@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Scale, Loader2 } from "lucide-react";
+import { PARCEL_PREFIX } from "@/lib/config";
 
 export function WeighInForm() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export function WeighInForm() {
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="CF-2026-123456"
+          placeholder={`${PARCEL_PREFIX}-2026-123456`}
           className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm font-mono uppercase focus:border-primary transition-colors"
         />
       </label>

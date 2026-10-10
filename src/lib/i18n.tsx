@@ -7,15 +7,16 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { getTenant, tenantVars, interpolate } from "@/tenant";
 
 export type Locale = "fr" | "en";
 
 const dict = {
   // ── Shared ──
-  brand: { fr: "SN Groupage Solutions", en: "SN Groupage Solutions" },
+  brand: { fr: "{brand}", en: "{brand}" },
   tagline: {
-    fr: "Transport de colis en toute confiance",
-    en: "Parcel & cargo transport you can trust",
+    fr: "{tagline}",
+    en: "{tagline}",
   },
   nav_track: { fr: "Suivre un colis", en: "Track a shipment" },
   nav_book: { fr: "Réserver", en: "Book" },
@@ -25,12 +26,12 @@ const dict = {
   next_departure_label: { fr: "Prochain départ", en: "Next departure" },
   next_departure_soon: { fr: "Bientôt annoncé", en: "Announced soon" },
   hero_title: {
-    fr: "Alsace → Cameroun : vos colis et marchandises en toute confiance",
-    en: "Alsace → Cameroon: your parcels & goods, in full confidence",
+    fr: "{origin} → {destCountry} : vos colis et marchandises en toute confiance",
+    en: "{origin} → {destCountry}: your parcels & goods, in full confidence",
   },
   hero_sub: {
-    fr: "Du carton à la voiture — décrivez ce que vous envoyez, notre assistant estime le conditionnement et le prix en quelques secondes. Groupage régulier vers le Cameroun : Douala et Yaoundé.",
-    en: "From a box to a car — describe what you're sending and our assistant estimates conditioning and price in seconds. Regular groupage to Cameroon: Douala and Yaoundé.",
+    fr: "Du carton à la voiture — décrivez ce que vous envoyez, notre assistant estime le conditionnement et le prix en quelques secondes. Groupage régulier vers {destCountryArt} : {destCities}.",
+    en: "From a box to a car — describe what you're sending and our assistant estimates conditioning and price in seconds. Regular groupage to {destCountry}: {destCities}.",
   },
   quote_placeholder: {
     fr: "Ex. : 1 réfrigérateur, 3 cartons de vêtements, 1 TV et une moto…",
@@ -54,7 +55,7 @@ const dict = {
   },
   quote_items: { fr: "Articles reconnus", en: "Recognised items" },
   quote_chargeable: { fr: "Volume facturable", en: "Chargeable volume" },
-  quote_freight: { fr: "Fret maritime · 750 €/m³", en: "Sea freight · €750/m³" },
+  quote_freight: { fr: "Fret maritime · {ratePerM3} €/m³", en: "Sea freight · €{ratePerM3}/m³" },
   quote_vehicles: { fr: "Véhicule(s)", en: "Vehicle(s)" },
   quote_pickup_line: { fr: "Enlèvement à domicile", en: "Home pickup" },
   quote_review_title: { fr: "Devis personnalisé", en: "Custom quote" },
@@ -84,8 +85,8 @@ const dict = {
   assist_or_dims: { fr: "ou entrez vos dimensions", en: "or enter your dimensions" },
   assist_ask_cta: { fr: "Une question ? Demandez à l'assistant", en: "Have a question? Ask the assistant" },
   assist_ask_placeholder: {
-    fr: "Ex. : combien de temps pour Douala ? que puis-je envoyer ?",
-    en: "E.g.: how long to Douala? what can I ship?",
+    fr: "Ex. : combien de temps pour {primaryCity} ? que puis-je envoyer ?",
+    en: "E.g.: how long to {primaryCity}? what can I ship?",
   },
   assist_thinking: { fr: "L'assistant réfléchit…", en: "The assistant is thinking…" },
   assist_send: { fr: "Envoyer", en: "Send" },
@@ -100,12 +101,12 @@ const dict = {
     en: "That's groupage: everyone sends what they want, everything leaves in one container — and everyone pays only their share.",
   },
   journey_caption: {
-    fr: "4–8 semaines · Un seul conteneur · Toute la diaspora",
-    en: "4–8 weeks · One container · The whole diaspora",
+    fr: "{transitMin}–{transitMax} semaines · Un seul conteneur · Toute la diaspora",
+    en: "{transitMin}–{transitMax} weeks · One container · The whole diaspora",
   },
   journey_aria: {
-    fr: "Animation : des colis se regroupent dans un conteneur qui voyage du Havre à Douala par bateau",
-    en: "Animation: parcels consolidate into a container that travels from Le Havre to Douala by ship",
+    fr: "Animation : des colis se regroupent dans un conteneur qui voyage {portFrom} à {primaryCity} par bateau",
+    en: "Animation: parcels consolidate into a container that travels from {port} to {primaryCity} by ship",
   },
 
   // ── Goods we transport ──
@@ -133,13 +134,13 @@ const dict = {
   wiz_back: { fr: "Retour", en: "Back" },
   wiz_dropoff: { fr: "Je dépose au terminal", en: "I drop off at the terminal" },
   wiz_dropoff_desc: {
-    fr: "Gratuit — Terminal SN Groupage, 67240 Bischwiller",
-    en: "Free — SN Groupage terminal, 67240 Bischwiller",
+    fr: "Gratuit — {terminalAddress}",
+    en: "Free — {terminalAddress}",
   },
   wiz_pickup: { fr: "Enlèvement à domicile", en: "Home pickup" },
   wiz_pickup_desc: {
-    fr: "5 € + 0,19 € par km depuis notre terminal de Bischwiller",
-    en: "€5 + €0.19 per km from our Bischwiller terminal",
+    fr: "{pickupBase} + {pickupPerKm} par km depuis notre terminal de {terminalCity}",
+    en: "{pickupBase} + {pickupPerKm} per km from our {terminalCity} terminal",
   },
   wiz_pickup_address: { fr: "Adresse d'enlèvement", en: "Pickup address" },
   wiz_pickup_postcode: { fr: "Code postal", en: "Postcode" },
@@ -147,8 +148,8 @@ const dict = {
   wiz_pickup_calc: { fr: "Calculer la distance", en: "Calculate distance" },
   wiz_pickup_km: { fr: "Distance routière", en: "Road distance" },
   wiz_pickup_too_far: {
-    fr: "Au-delà de 200 km, contactez-nous sur WhatsApp pour un devis.",
-    en: "Beyond 200 km, contact us on WhatsApp for a quote.",
+    fr: "Au-delà de {pickupMaxKm} km, contactez-nous sur WhatsApp pour un devis.",
+    en: "Beyond {pickupMaxKm} km, contact us on WhatsApp for a quote.",
   },
   wiz_pickup_not_found: {
     fr: "Adresse introuvable. Vérifiez le code postal et la ville.",
@@ -160,9 +161,9 @@ const dict = {
   },
   wiz_departs: { fr: "Départ", en: "Departs" },
   wiz_cutoff: { fr: "Limite de dépôt", en: "Drop-off cutoff" },
-  wiz_eta: { fr: "Arrivée estimée à Douala", en: "Estimated arrival in Douala" },
+  wiz_eta: { fr: "Arrivée estimée à {primaryCity}", en: "Estimated arrival in {primaryCity}" },
   wiz_sender: { fr: "Expéditeur (vous)", en: "Sender (you)" },
-  wiz_receiver: { fr: "Destinataire au Cameroun", en: "Recipient in Cameroon" },
+  wiz_receiver: { fr: "Destinataire ({destCountry})", en: "Recipient ({destCountry})" },
   wiz_name: { fr: "Nom complet", en: "Full name" },
   wiz_phone: { fr: "Téléphone", en: "Phone" },
   wiz_email: { fr: "E-mail (facultatif)", en: "Email (optional)" },
@@ -181,6 +182,7 @@ const dict = {
     fr: "Paiement au terminal ou à l'enlèvement (espèces ou carte). Aucun paiement en ligne requis.",
     en: "Payment at the terminal or on pickup (cash or card). No online payment required.",
   },
+  pay_online: { fr: "Payer en ligne maintenant", en: "Pay online now" },
   wiz_confirm: { fr: "Confirmer ma réservation", en: "Confirm my booking" },
   wiz_confirming: { fr: "Réservation en cours…", en: "Booking…" },
   wiz_done_title: { fr: "Réservation confirmée !", en: "Booking confirmed!" },
@@ -196,17 +198,17 @@ const dict = {
 
   // ── Tracking ──
   track_title: { fr: "Suivre votre envoi", en: "Track your shipment" },
-  track_placeholder: { fr: "SN-2026-123456", en: "SN-2026-123456" },
+  track_placeholder: { fr: "{prefix}-2026-123456", en: "{prefix}-2026-123456" },
   track_button: { fr: "Suivre", en: "Track" },
   track_not_found: {
-    fr: "Numéro introuvable. Vérifiez le format SN-AAAA-XXXXXX.",
-    en: "Number not found. Check the SN-YYYY-XXXXXX format.",
+    fr: "Numéro introuvable. Vérifiez le format {prefix}-AAAA-XXXXXX.",
+    en: "Number not found. Check the {prefix}-YYYY-XXXXXX format.",
   },
   track_to: { fr: "vers", en: "to" },
   track_history: { fr: "Historique", en: "History" },
   track_eta_note: {
-    fr: "Groupage maritime : comptez 4 à 8 semaines porte à porte. Nous vous tenons informés à chaque étape.",
-    en: "Sea groupage: allow 4–8 weeks door to door. We keep you posted at every step.",
+    fr: "Groupage maritime : comptez {transitMin} à {transitMax} semaines porte à porte. Nous vous tenons informés à chaque étape.",
+    en: "Sea groupage: allow {transitMin}–{transitMax} weeks door to door. We keep you posted at every step.",
   },
 
   // Milestones
@@ -215,7 +217,7 @@ const dict = {
   ms_consolidated: { fr: "Conteneur en préparation", en: "Container loading" },
   ms_departed: { fr: "Départ du port", en: "Departed port" },
   ms_at_sea: { fr: "En mer", en: "At sea" },
-  ms_arrived_douala: { fr: "Arrivé à Douala", en: "Arrived in Douala" },
+  ms_arrived_douala: { fr: "Arrivé à {primaryCity}", en: "Arrived in {primaryCity}" },
   ms_customs: { fr: "Dédouanement", en: "Customs clearance" },
   ms_out_for_delivery: { fr: "En livraison", en: "Out for delivery" },
   ms_delivered: { fr: "Livré", en: "Delivered" },
@@ -229,26 +231,26 @@ const dict = {
   },
   how_2_t: { fr: "2. Déposez ou faites enlever", en: "2. Drop off or get picked up" },
   how_2_d: {
-    fr: "À notre terminal de Bischwiller, ou enlèvement chez vous (5 € + 0,19 €/km).",
-    en: "At our Bischwiller terminal, or home pickup (€5 + €0.19/km).",
+    fr: "À notre terminal de {terminalCity}, ou enlèvement chez vous ({pickupBase} + {pickupPerKm}/km).",
+    en: "At our {terminalCity} terminal, or home pickup ({pickupBase} + {pickupPerKm}/km).",
   },
   how_3_t: { fr: "3. Suivez jusqu'à destination", en: "3. Track all the way there" },
   how_3_d: {
-    fr: "Un numéro de suivi SN unique et des nouvelles claires à chaque étape, sur WhatsApp.",
-    en: "One SN tracking number and clear updates at every step, on WhatsApp.",
+    fr: "Un numéro de suivi {short} unique et des nouvelles claires à chaque étape, sur WhatsApp.",
+    en: "One {short} tracking number and clear updates at every step, on WhatsApp.",
   },
   cal_title: { fr: "Prochains départs", en: "Next departures" },
   cal_sub: {
-    fr: "Conteneurs groupés au départ du Havre, vers le Cameroun (Douala–Yaoundé).",
-    en: "Consolidated containers from Le Havre, to Cameroon (Douala–Yaoundé).",
+    fr: "Conteneurs groupés au départ {portFrom}, vers {destCountryArt} ({destCitiesDash}).",
+    en: "Consolidated containers from {port}, to {destCountry} ({destCitiesDash}).",
   },
   trust_title: { fr: "Ils nous font confiance", en: "They trust us" },
   faq_title: { fr: "Questions fréquentes", en: "Frequently asked questions" },
   footer_warehouse: { fr: "Terminal", en: "Terminal" },
   footer_contact: { fr: "Contact", en: "Contact" },
   footer_legal: {
-    fr: "Transport de colis & marchandises, France → Cameroun.",
-    en: "Parcel & cargo transport, France → Cameroon.",
+    fr: "Transport de colis & marchandises, {originCountry} → {destCountry}.",
+    en: "Parcel & cargo transport, {originCountry} → {destCountry}.",
   },
 } as const;
 
@@ -260,14 +262,14 @@ const LocaleContext = createContext<{
 }>({ locale: "fr", setLocale: () => {} });
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("fr");
+  const [locale, setLocaleState] = useState<Locale>(getTenant().defaultLocale);
   useEffect(() => {
-    const saved = window.localStorage.getItem("sn_locale");
+    const saved = window.localStorage.getItem("ff_locale");
     if (saved === "en" || saved === "fr") setLocaleState(saved);
   }, []);
   const setLocale = (l: Locale) => {
     setLocaleState(l);
-    window.localStorage.setItem("sn_locale", l);
+    window.localStorage.setItem("ff_locale", l);
   };
   return (
     <LocaleContext.Provider value={{ locale, setLocale }}>
@@ -282,5 +284,6 @@ export function useLocale() {
 
 export function useT() {
   const { locale } = useLocale();
-  return (key: DictKey) => dict[key][locale];
+  const vars = tenantVars(locale);
+  return (key: DictKey) => interpolate(dict[key][locale], vars);
 }

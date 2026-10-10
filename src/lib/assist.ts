@@ -4,6 +4,7 @@
 
 import { ANTHROPIC_MODEL } from "./config";
 import { hasAI, getAnthropicKey } from "./secrets";
+import { tenantVars, interpolate } from "@/tenant";
 import { CATALOG } from "./catalog/catalog";
 import { matchDescription, normalize } from "./catalog/match";
 import { priceQuote, type QuoteItem } from "./pricing";
@@ -67,28 +68,28 @@ export function closestMatches(message: string, n = 3): Suggestion[] {
 const FAQ: Array<{ re: RegExp; fr: string; en: string }> = [
   {
     re: /(combien de temps|delai|d[ée]lai|temps|dure|semaine|how long|transit|duration)/i,
-    fr: "Par voie maritime (groupage), comptez 4 à 8 semaines porte à porte selon la date de départ du conteneur et le dédouanement à Douala.",
-    en: "By sea (groupage), allow 4–8 weeks door to door depending on the container departure and customs clearance in Douala.",
+    fr: "Par voie maritime (groupage), comptez {transitMin} à {transitMax} semaines porte à porte selon la date de départ du conteneur et le dédouanement à {primaryCity}.",
+    en: "By sea (groupage), allow {transitMin}–{transitMax} weeks door to door depending on the container departure and customs clearance in {primaryCity}.",
   },
   {
     re: /(prix|tarif|co[uû]t|comment.*calcul|how much|cost|rate|pricing|price|m3|m³)/i,
-    fr: "Nos tarifs : 750 €/m³ en groupage maritime, avec la règle 200 kg = 1 m³ (on facture le plus élevé entre le volume et le poids). Les véhicules sont au forfait (citadine 650 €, utilitaire 750 €…). Minimum 45 €. Vous pouvez entrer les dimensions exactes de vos caisses pour un devis immédiat.",
-    en: "Our rates: €750/m³ for sea groupage, using the 200 kg = 1 m³ rule (we charge the greater of volume and weight). Vehicles are flat-rated (city car €650, van €750…). €45 minimum. You can enter your exact box dimensions for an instant quote.",
+    fr: "Nos tarifs : {ratePerM3} €/m³ en groupage maritime, avec la règle {kgPerM3} kg = 1 m³ (on facture le plus élevé entre le volume et le poids). Les véhicules sont au forfait (voir la grille des véhicules). Minimum {minFreight} €. Vous pouvez entrer les dimensions exactes de vos caisses pour un devis immédiat.",
+    en: "Our rates: €{ratePerM3}/m³ for sea groupage, using the {kgPerM3} kg = 1 m³ rule (we charge the greater of volume and weight). Vehicles are flat-rated (see the vehicle rate card). €{minFreight} minimum. You can enter your exact box dimensions for an instant quote.",
   },
   {
     re: /(interdit|prohib|forbidden|peut pas|autoris|dangereu|batterie|inflammable)/i,
-    fr: "Produits interdits : inflammables, batteries au lithium seules, denrées périssables, espèces, et tout article prohibé par la douane camerounaise.",
-    en: "Prohibited items: flammables, standalone lithium batteries, perishables, cash, and anything banned by Cameroonian customs.",
+    fr: "Produits interdits : inflammables, batteries au lithium seules, denrées périssables, espèces, et tout article prohibé par la douane ({destCountry}).",
+    en: "Prohibited items: flammables, standalone lithium batteries, perishables, cash, and anything banned by {destCountry} customs.",
   },
   {
     re: /(douane|customs|taxe|duty|dedouan|d[ée]douan|tax)/i,
-    fr: "Le dédouanement au Cameroun suit le tarif CEMAC (5 à 30 %) plus une TVA d'environ 19,25 %. Les droits éventuels sont réglés à l'arrivée.",
-    en: "Customs in Cameroon follow the CEMAC tariff (5–30%) plus about 19.25% VAT. Any duties are settled on arrival.",
+    fr: "Les droits et taxes de douane à l'arrivée ({destCountry}) sont réglés par le destinataire selon le tarif local en vigueur.",
+    en: "Destination customs duties and taxes ({destCountry}) are settled by the recipient on arrival at the local rate.",
   },
   {
     re: /(enl[èe]vement|pickup|domicile|collect|ramassage|venir chercher)/i,
-    fr: "Enlèvement à domicile : 5 € + 0,19 €/km depuis notre terminal de Bischwiller. Le dépôt au terminal est gratuit.",
-    en: "Home pickup: €5 + €0.19/km from our Bischwiller terminal. Dropping off at the terminal is free.",
+    fr: "Enlèvement à domicile : {pickupBase} + {pickupPerKm}/km depuis notre terminal de {terminalCity}. Le dépôt au terminal est gratuit.",
+    en: "Home pickup: {pickupBase} + {pickupPerKm}/km from our {terminalCity} terminal. Dropping off at the terminal is free.",
   },
   {
     re: /(paiement|payment|payer|\bpay\b|r[èe]gler|carte|especes|esp[èe]ces)/i,
@@ -97,8 +98,8 @@ const FAQ: Array<{ re: RegExp; fr: string; en: string }> = [
   },
   {
     re: /(suivi|tracking|track|num[ée]ro|parcel number|o[uù].*colis|suivre)/i,
-    fr: "Chaque envoi reçoit un numéro SN-AAAA-XXXXXX. Suivez-le sur la page Suivi, et vous recevez aussi des nouvelles à chaque étape sur WhatsApp.",
-    en: "Every shipment gets an SN-YYYY-XXXXXX number. Track it on the Tracking page, and you also get updates at each step on WhatsApp.",
+    fr: "Chaque envoi reçoit un numéro {prefix}-AAAA-XXXXXX. Suivez-le sur la page Suivi, et vous recevez aussi des nouvelles à chaque étape sur WhatsApp.",
+    en: "Every shipment gets a {prefix}-YYYY-XXXXXX number. Track it on the Tracking page, and you also get updates at each step on WhatsApp.",
   },
   {
     re: /(emballage|packaging|embal|prot[ée]ger|caisse)/i,
@@ -107,18 +108,18 @@ const FAQ: Array<{ re: RegExp; fr: string; en: string }> = [
   },
   {
     re: /(d[ée]part|calendrier|prochain|next|schedule|conteneur|quand)/i,
-    fr: "Nos conteneurs partent régulièrement du Havre vers le Cameroun (Douala–Yaoundé). Le calendrier des prochains départs est affiché sur la page d'accueil.",
-    en: "Our containers leave Le Havre for Cameroon (Douala–Yaoundé) on a regular schedule. The next departures are shown on the home page.",
+    fr: "Nos conteneurs partent régulièrement {portFrom} vers {destCountryArt} ({destCitiesDash}). Le calendrier des prochains départs est affiché sur la page d'accueil.",
+    en: "Our containers leave {port} for {destCountry} ({destCitiesDash}) on a regular schedule. The next departures are shown on the home page.",
   },
   {
     re: /(destination|o[uù]|where|ville|city|livr|cameroun|douala|yaound)/i,
-    fr: "Nous expédions d'Alsace (France) vers le Cameroun : Douala, Yaoundé et les grandes villes du pays. Notre terminal est à Bischwiller (67240).",
-    en: "We ship from Alsace (France) to Cameroon: Douala, Yaoundé and major cities across the country. Our terminal is in Bischwiller (67240).",
+    fr: "Nous expédions de {origin} ({originCountry}) vers {destCountryArt} : {destCities} et les grandes villes du pays. Notre terminal est à {terminalCity}.",
+    en: "We ship from {origin} ({originCountry}) to {destCountry}: {destCities} and major cities across the country. Our terminal is in {terminalCity}.",
   },
 ];
 
 function faqAnswer(message: string, locale: "fr" | "en"): string | null {
-  for (const f of FAQ) if (f.re.test(message)) return locale === "fr" ? f.fr : f.en;
+  for (const f of FAQ) if (f.re.test(message)) return interpolate(locale === "fr" ? f.fr : f.en, tenantVars(locale));
   return null;
 }
 
@@ -143,16 +144,17 @@ function buildSystemPrompt(locale: "fr" | "en"): string {
   const list = CATALOG.map(
     (c) => `${c.id} | ${c.labelFr} / ${c.labelEn} | ≈ ${(unitPriceCents(c.id) / 100).toFixed(0)}€`
   ).join("\n");
+  const V = tenantVars("en");
   return (
-    "You are the assistant for SN Groupage Solutions, an Alsace (France) → Cameroon (Douala–Yaoundé) " +
-    "sea-freight groupage service for the Cameroonian diaspora. The terminal is in Bischwiller (Alsace). " +
+    `You are the assistant for ${V.brand}, a ${V.origin} (${V.originCountry}) → ${V.destCountry} (${V.destCitiesDash}) ` +
+    `sea-freight groupage service for the ${V.destCountry} diaspora. The terminal is in ${V.terminalCity} (${V.origin}). ` +
     "Be warm, concise and helpful. " +
     `Answer in ${locale === "fr" ? "French" : "English"}.\n\n` +
-    "FACTS: Sea groupage 750 €/m³ with the 200 kg = 1 m³ rule (charge the greater of volume and weight). " +
-    "Vehicles are flat-rated. Minimum 45 €. Pickup 5 € + 0,19 €/km from Bischwiller, or free drop-off. " +
-    "Transit 4–8 weeks by sea. Payment at the terminal (no online payment). Each shipment gets an " +
-    "SN-YYYY-XXXXXX tracking number and WhatsApp updates. Cameroon customs follow CEMAC (5–30%) + ~19.25% VAT, " +
-    "paid on arrival. Prohibited: flammables, lone lithium batteries, perishables, cash.\n\n" +
+    `FACTS: Sea groupage ${V.ratePerM3} €/m³ with the ${V.kgPerM3} kg = 1 m³ rule (charge the greater of volume and weight). ` +
+    `Vehicles are flat-rated. Minimum ${V.minFreight} €. Pickup ${V.pickupBase} + ${V.pickupPerKm}/km from ${V.terminalCity}, or free drop-off. ` +
+    `Transit ${V.transitMin}–${V.transitMax} weeks by sea. Payment at the terminal (no online payment). Each shipment gets a ` +
+    `${V.prefix}-YYYY-XXXXXX tracking number and WhatsApp updates. Destination customs duties are paid by the recipient on arrival. ` +
+    "Prohibited: flammables, lone lithium batteries, perishables, cash.\n\n" +
     "PRICING RULES YOU MUST FOLLOW:\n" +
     "- NEVER invent a price. To quote, CALL the price_items tool; state only the number it returns.\n" +
     "- If the item isn't in the catalog, suggest the closest catalog item(s) AND invite the user to enter " +

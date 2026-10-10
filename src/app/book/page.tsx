@@ -18,6 +18,9 @@ import { PriceTicker, CodeReveal } from "@/components/motion/PriceTicker";
 import { AssistPanel } from "@/components/AssistPanel";
 import { CustomBoxForm, type CustomBox } from "@/components/CustomBoxForm";
 import type { DepartureDto } from "@/components/useDepartures";
+import { getTenant, bookingLane } from "@/tenant";
+
+const DEST_PREFIX = (getTenant().contact.phoneDest?.match(/^\+\d+/)?.[0] ?? "+") + " ";
 
 type QuoteItemInput = { catalogId: string; quantity: number } | CustomBox;
 
@@ -71,24 +74,13 @@ const EMPTY: Draft = {
   senderEmail: "",
   whatsapp: true,
   receiverName: "",
-  receiverPhone: "+237 ",
-  receiverCity: "Douala",
+  receiverPhone: DEST_PREFIX,
+  receiverCity: bookingLane().destCities[0],
   neighborhood: "",
   landmark: "",
 };
 
-const CAMEROON_CITIES = [
-  "Douala",
-  "Yaoundé",
-  "Bafoussam",
-  "Bamenda",
-  "Garoua",
-  "Maroua",
-  "Buea",
-  "Limbe",
-  "Kribi",
-  "Autre / Other",
-];
+const CAMEROON_CITIES = [...bookingLane().destCities, "Autre / Other"];
 
 function euro(cents: number) {
   return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
@@ -108,6 +100,15 @@ export default function BookPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
   const [confirmedCode, setConfirmedCode] = useState<string | null>(null);
+  const [payUrl, setPayUrl] = useState<string | null>(null);
+  // Optional online payment (Stripe test mode) — only offered when the server has a key
+  useEffect(() => {
+    if (!confirmedCode) return;
+    fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: confirmedCode }) })
+      .then((r) => r.json())
+      .then((d) => { if (d?.url) setPayUrl(d.url); })
+      .catch(() => {});
+  }, [confirmedCode]);
   const [copied, setCopied] = useState(false);
 
   // Autosave: this audience gets interrupted and comes back later
@@ -322,6 +323,11 @@ export default function BookPage() {
           </button>
         </div>
         <p className="mt-4 text-sm text-muted">{t("wiz_payment_note")}</p>
+        {payUrl && (
+          <a href={payUrl} className="mt-5 inline-block rounded-xl bg-accent hover:bg-accent-dark text-white font-bold px-8 py-3 transition-colors">
+            {t("pay_online")}
+          </a>
+        )}
         <Link
           href={`/track/${confirmedCode}`}
           className="mt-8 inline-block rounded-xl bg-primary hover:bg-primary-dark text-white font-bold px-8 py-3 transition-colors"
@@ -606,7 +612,7 @@ export default function BookPage() {
               <input
                 value={draft.receiverPhone}
                 onChange={(e) => set({ receiverPhone: e.target.value })}
-                placeholder={`${t("wiz_phone")} (+237…)`}
+                placeholder={`${t("wiz_phone")} (${DEST_PREFIX.trim()}…)`}
                 inputMode="tel"
                 className="w-full rounded-xl border border-border px-4 py-2.5 text-sm focus:border-primary transition-colors"
               />

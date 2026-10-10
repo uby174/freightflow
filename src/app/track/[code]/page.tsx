@@ -7,15 +7,21 @@ import { motion, useReducedMotion } from "motion/react";
 import { useLocale, useT, type DictKey } from "@/lib/i18n";
 import type { MilestoneKey } from "@/lib/carrier/types";
 import { PassportStamp } from "@/components/motion/PassportStamp";
+import { bookingLane } from "@/tenant";
+
+const LANE = bookingLane();
+const TC = LANE.terminal.city.toUpperCase();
+const PORT = LANE.port.toUpperCase();
+const CITY = LANE.destCities[0].toUpperCase();
 
 // Short seal labels for the passport stamp, plus its ink colour.
 const STAMP: Record<MilestoneKey, { fr: string; en: string; ink?: string }> = {
   booked: { fr: "RÉSERVÉ", en: "BOOKED" },
-  received_warehouse: { fr: "BISCHWILLER", en: "BISCHWILLER" },
+  received_warehouse: { fr: TC, en: TC },
   consolidated: { fr: "GROUPAGE", en: "CONSOLIDATED" },
-  departed: { fr: "LE HAVRE", en: "LE HAVRE" },
+  departed: { fr: PORT, en: PORT },
   at_sea: { fr: "EN MER", en: "AT SEA" },
-  arrived_douala: { fr: "DOUALA", en: "DOUALA" },
+  arrived_douala: { fr: CITY, en: CITY },
   customs: { fr: "DOUANE", en: "CUSTOMS" },
   out_for_delivery: { fr: "LIVRAISON", en: "OUT FOR DELIVERY" },
   delivered: { fr: "LIVRÉ", en: "DELIVERED", ink: "#d21f28" },

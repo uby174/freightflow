@@ -1,11 +1,16 @@
 "use client";
 
 import { MapPin, MessageCircle, Phone, Mail } from "lucide-react";
-import { useT } from "@/lib/i18n";
+import { useT, useLocale } from "@/lib/i18n";
 import { CONTACT } from "@/lib/config";
+import { getTenant, bookingLane, tenantVars } from "@/tenant";
 
 export function Footer() {
   const t = useT();
+  const { locale } = useLocale();
+  const T = getTenant();
+  const L = bookingLane(T);
+  const V = tenantVars(locale);
   return (
     <footer className="bg-primary text-white mt-20">
       <div className="mx-auto max-w-6xl px-4 py-12 grid gap-8 sm:grid-cols-4 text-sm">
@@ -15,13 +20,9 @@ export function Footer() {
               className="grid place-items-center rounded-lg bg-secondary text-white font-black shrink-0"
               style={{ width: 40, height: 40, fontSize: 18 }}
             >
-              SN
+              {T.shortName}
             </span>
-            <span className="font-black text-base leading-tight">
-              SN Groupage
-              <br />
-              Solutions
-            </span>
+            <span className="font-black text-base leading-tight">{T.name}</span>
           </div>
           <p className="mt-3 text-blue-200">{t("footer_legal")}</p>
         </div>
@@ -29,11 +30,11 @@ export function Footer() {
           <p className="font-bold mb-2 text-gold">{t("footer_warehouse")}</p>
           <p className="flex items-start gap-2 text-blue-200">
             <MapPin className="w-4 h-4 mt-0.5 shrink-0" aria-hidden />
-            Terminal SN Groupage
+            {L.terminal.name}
             <br />
           </p>
-          <p className="text-blue-200 pl-6">67240 Bischwiller (Alsace), France</p>
-          <p className="text-blue-200 pl-6 mt-1">→ Cameroun : Douala &amp; Yaoundé</p>
+          <p className="text-blue-200 pl-6">{L.terminal.address.replace(`${L.terminal.name}, `, "")}</p>
+          <p className="text-blue-200 pl-6 mt-1">→ {V.destCountry} : {V.destCities}</p>
         </div>
         <div>
           <p className="font-bold mb-2 text-gold">Info &amp; Réservation</p>
@@ -45,7 +46,7 @@ export function Footer() {
             {CONTACT.phoneFr2}
           </p>
           <p className="flex items-center gap-2 text-blue-200 mt-1">
-            <span className="w-4 shrink-0 text-center">🇨🇲</span>
+            <Phone className="w-4 h-4 shrink-0" aria-hidden />
             {CONTACT.phoneCm}
           </p>
         </div>

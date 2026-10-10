@@ -29,6 +29,8 @@ export const orders = sqliteTable("orders", {
   shippingCents: integer("shipping_cents").notNull(),
   pickupCents: integer("pickup_cents").notNull().default(0),
   totalCents: integer("total_cents").notNull(),
+  paymentStatus: text("payment_status").notNull().default("unpaid"), // unpaid | paid
+  stripeSessionId: text("stripe_session_id"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 

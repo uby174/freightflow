@@ -1,3 +1,8 @@
+"use client";
+
+import { useLocale } from "@/lib/i18n";
+import { getTenant } from "@/tenant";
+
 export function Logo({
   showText = true,
   className = "",
@@ -5,6 +10,8 @@ export function Logo({
   showText?: boolean;
   className?: string;
 }) {
+  const { locale } = useLocale();
+  const T = getTenant();
   return (
     <span className={`flex items-center gap-2.5 ${className}`}>
       <span
@@ -12,15 +19,15 @@ export function Logo({
         style={{ width: 40, height: 40, fontSize: 18 }}
         aria-hidden
       >
-        SN
+        {T.shortName}
       </span>
       {showText && (
         <span className="leading-tight">
           <span className="block font-black text-primary text-base sm:text-lg tracking-tight">
-            SN Groupage Solutions
+            {T.name}
           </span>
           <span className="block text-[11px] text-gold-dark font-semibold -mt-0.5">
-            Transport de colis en toute confiance
+            {T.tagline[locale]}
           </span>
         </span>
       )}

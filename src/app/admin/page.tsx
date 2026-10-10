@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { db, orders, parcels, carrierShipments } from "@/db";
 import { WeighInForm } from "@/components/WeighInForm";
 import { ApiKeyForm } from "@/components/ApiKeyForm";
+import { BRAND } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +44,7 @@ export default function AdminPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-2xl font-black text-primary-dark">
-        Terminal — Ops SN Groupage
+        Terminal — Ops {BRAND}
       </h1>
       <p className="text-sm text-muted mt-1">
         Pesée, réconciliation et mapping transporteur (interne uniquement).

@@ -2,6 +2,10 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import path from "node:path";
 import * as schema from "./schema";
+import { getTenant, bookingLane } from "@/tenant";
+
+const T = getTenant();
+const L = bookingLane(T);
 
 const DDL = `
 CREATE TABLE IF NOT EXISTS orders (
@@ -26,6 +30,8 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping_cents INTEGER NOT NULL,
   pickup_cents INTEGER NOT NULL DEFAULT 0,
   total_cents INTEGER NOT NULL,
+  payment_status TEXT NOT NULL DEFAULT 'unpaid',
+  stripe_session_id TEXT,
   created_at INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS parcels (
@@ -137,10 +143,14 @@ CREATE TABLE IF NOT EXISTS forbidden_terms (
 `;
 
 function createDb() {
-  const file = path.join(process.cwd(), "camfret.db");
+  const file = path.join(process.cwd(), `freightflow-${T.id}.db`);
   const sqlite = new Database(file);
   sqlite.pragma("journal_mode = WAL");
   sqlite.exec(DDL);
+  // Additive migrations for databases created before these columns existed
+  for (const col of ["payment_status TEXT NOT NULL DEFAULT 'unpaid'", "stripe_session_id TEXT"]) {
+    try { sqlite.exec("ALTER TABLE orders ADD COLUMN " + col); } catch { /* already present */ }
+  }
   const db = drizzle(sqlite, { schema });
   seedIfEmpty(sqlite);
   return db;
@@ -181,14 +191,14 @@ function seedIfEmpty(sqlite: Database.Database) {
   d.setDate(d.getDate() + ((5 - d.getDay() + 7) % 7 || 7)); // next Friday
   d.setHours(12, 0, 0, 0);
   for (let i = 0; i < 6; i++) {
-    const departs = new Date(d.getTime() + i * 14 * 24 * 3600_000);
-    const cutoff = new Date(departs.getTime() - 2 * 24 * 3600_000);
-    const eta = new Date(departs.getTime() + 25 * 24 * 3600_000);
+    const departs = new Date(d.getTime() + i * T.departures.everyDays * 24 * 3600_000);
+    const cutoff = new Date(departs.getTime() - T.departures.cutoffDays * 24 * 3600_000);
+    const eta = new Date(departs.getTime() + T.departures.transitDays * 24 * 3600_000);
     dep.run(
       departs.getTime(),
       cutoff.getTime(),
-      `Conteneur SN-${String(i + 1).padStart(2, "0")}`,
-      "Le Havre",
+      `${T.departures.labelPrefix}${String(i + 1).padStart(2, "0")}`,
+      L.port,
       eta.getTime()
     );
   }
@@ -198,19 +208,7 @@ function seedIfEmpty(sqlite: Database.Database) {
   const term = sqlite.prepare(
     "INSERT INTO forbidden_terms (term,replacement) VALUES (?,?)"
   );
-  const terms: Array<[string, string]> = [
-    ["TransGlobal Express", "SN Groupage Solutions"],
-    ["TransGlobal", "SN Groupage Solutions"],
-    ["TGE Cameroun SARL", "notre agent local"],
-    ["TGE", "SN Groupage Solutions"],
-    ["MSC AMANDA", "le navire"],
-    ["MSC", "notre transporteur maritime"],
-    ["Maersk", "notre transporteur maritime"],
-    ["CMA CGM", "notre transporteur maritime"],
-    ["DHL", "notre réseau"],
-    ["Express Union", "notre livreur local"],
-    ["Kehl", "la région de Bischwiller"],
-  ];
+  const terms = T.forbiddenTerms;
   for (const [t, r] of terms) term.run(t, r);
 }
 
